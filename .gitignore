@@ -46,3 +46,6 @@ build/
 .DS_Store
 Thumbs.db
 
+./src/main/resources/crawler-output.json
+
+

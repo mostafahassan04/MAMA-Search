@@ -2,7 +2,9 @@ import { useState } from 'react'
 import SearchBar from './components/SearchBar.jsx'
 function App() {
   const onSearch = async (query) => {
-    await fetch(`http://localhost:8080/search?q=${query}`).then((response) => {
+
+    await fetch(`http://localhost:8080/api/search?q=${query}`).then((response) => {
+
       if (response.ok) {
         return response.json()
       }

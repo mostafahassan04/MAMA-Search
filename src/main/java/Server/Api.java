@@ -1,5 +1,6 @@
 package Server;
 
+import Processor.Processor;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
@@ -33,39 +34,23 @@ public class Api {
             if ("GET".equals(method)) {
                 // Extract query from URL query parameter (e.g., /api/search?query=best+running+shoes)
                 String queryString = exchange.getRequestURI().getQuery(); // e.g., "query=best+running+shoes"
-                String searchQuery = "";
 
                 if (queryString != null) {
-                    Map<String, String> queryParams = parseQueryString(queryString);
-                    searchQuery = queryParams.getOrDefault("query", "");
-                    searchQuery = URLDecoder.decode(searchQuery, StandardCharsets.UTF_8.name());
-                }
-
-                if (searchQuery.isEmpty()) {
-                    sendResponse(exchange, 400, "{\"error\":\"Query parameter 'query' is required\"}");
-                    return;
+                    Processor processor = new Processor(queryString);
+                    String[] result = processor.tokenizeAndStem();
+                    System.out.println("Final stemmed tokens:");
+                    for (String token : result) {
+                        System.out.println(token);
+                    }
                 }
 
                 // For now, echo the query back as a response
-                String response = String.format("{\"query\":\"%s\"}", searchQuery);
+                String response = String.format("{\"query\":\"%s\"}", queryString);
                 sendResponse(exchange, 200, response);
             } else {
                 sendResponse(exchange, 405, "{\"error\":\"Method not allowed\"}");
             }
         }
-    }
-
-    private static Map<String, String> parseQueryString(String queryString) {
-        Map<String, String> params = new HashMap<>();
-        if (queryString != null) {
-            for (String pair : queryString.split("&")) {
-                String[] kv = pair.split("=");
-                if (kv.length == 2) {
-                    params.put(kv[0], kv[1]);
-                }
-            }
-        }
-        return params;
     }
 
     private static void sendResponse(HttpExchange exchange, int statusCode, String response)

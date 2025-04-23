@@ -72,6 +72,36 @@
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.16</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analyzers-common</artifactId>
+            <version>${lucene.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.tartarus.snowball</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>collide</id>
+            <url>http://mvn.collide.info/content/repositories/releases/</url>
+        </repository>
+        <repository>
+            <id>raisercostin</id>
+            <url>http://raisercostin.googlecode.com/svn/maven2</url>
+        </repository>
+    </repositories>
 
 </project>

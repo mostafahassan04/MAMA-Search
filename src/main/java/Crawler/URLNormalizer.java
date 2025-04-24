@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.security.*;
@@ -64,12 +65,12 @@ public class URLNormalizer {
 
             return scheme + "://" + host + (port == -1 ? "" : ":" + port) + path + (normalizedQuery == null ? "" : "?" + normalizedQuery);
         } catch (URISyntaxException e) {
-            System.err.println("Error normalizing URL: " + e.getMessage());
-            e.printStackTrace();
+            // System.err.println("Error normalizing URL: " + e.getMessage());
+            // e.printStackTrace();
             return null;
         } catch (Exception e) {
-            System.err.println("Unexpected error during URL normalization: " + e.getMessage());
-            e.printStackTrace();
+            // System.err.println("Unexpected error during URL normalization: " + e.getMessage());
+            // e.printStackTrace();
             return null;
         }
     }
@@ -91,6 +92,16 @@ public class URLNormalizer {
             System.err.println("Unexpected error during base URL extraction: " + e.getMessage());
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public static String extractDomain(String url) {
+        try {
+            URI parsedUri = URI.create(url);
+            return parsedUri.getHost().toLowerCase();
+        }
+        catch (Exception e) {
+            return "";
         }
     }
 

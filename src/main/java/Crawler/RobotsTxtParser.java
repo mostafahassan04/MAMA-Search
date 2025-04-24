@@ -4,27 +4,25 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 public class RobotsTxtParser {
-    private static final String UserAgent = "MAMA_Search";
-    private static final Map<String, String> robotsCache = new ConcurrentHashMap<>();
+    private final String UserAgent = "MAMA_Search";
+    // Cache to store robots.txt rules for each base URL to avoid redundant fetching
+    private final Map<String, List<List<String>>> robotsCache = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> urlsCache = new ConcurrentHashMap<>();
 
     // Fetches and caches the robots.txt content for a given URL
-    public static String fetchRobotsTxt(String url) {
+    private void fetchRobotsTxt(String url) {
+
         String baseUrl;
         baseUrl = URLNormalizer.getBaseURL(url);
         if (baseUrl == null || baseUrl.trim().isEmpty()) {
-            return null;
-        }
-
-        if (robotsCache.containsKey(baseUrl)) {
-            return robotsCache.get(baseUrl);
+            // Return null if the base URL is invalid or cannot be extracted
+            return;
         }
 
         String robotsUrl = baseUrl + "/robots.txt";
@@ -39,8 +37,9 @@ public class RobotsTxtParser {
 
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
-                robotsCache.put(robotsUrl, "");
-                return null;
+                // Cache empty list for non-200 responses to avoid repeated requests
+                robotsCache.put(baseUrl, new ArrayList<>());
+                return;
             }
 
             StringBuilder content = new StringBuilder();
@@ -53,60 +52,99 @@ public class RobotsTxtParser {
             }
 
             String robotsContent = content.toString();
-            robotsCache.put(robotsUrl, robotsContent.isEmpty() ? "" : robotsContent);
-            return robotsContent;
+
+            // Parse robots.txt content to extract allow and disallow rules
+            List<List<String>> robotsList = extractRules(robotsContent);
+
+            // Cache parsed rules, or empty list if no rules are found
+            robotsCache.put(baseUrl, robotsContent.isEmpty() ? new ArrayList<>() : robotsList);
 
         } catch (IOException e) {
-            robotsCache.put(robotsUrl, "");
+            // Cache empty list on error to prevent repeated failed attempts
+            robotsCache.put(baseUrl, new ArrayList<>());
+
             System.err.println("Error fetching robots.txt: " + e.getMessage());
-            e.printStackTrace();
-            return null;
         } finally {
             if (connection != null) {
+                // Ensure connection is closed to prevent resource leaks
                 connection.disconnect();
             }
         }
     }
 
     // Checks if the robots.txt for a URL has already been parsed
-    public static boolean isParsed(String url) {
-        String robotsUrl = URLNormalizer.getBaseURL(url) + "/robots.txt";
-        return robotsCache.containsKey(robotsUrl);
+    private boolean isParsed(String url) {
+        String baseUrl = URLNormalizer.getBaseURL(url);
+        if (baseUrl == null || baseUrl.trim().isEmpty()) {
+            return false;
+        }
+        return robotsCache.containsKey(baseUrl);
     }
 
     // Determines if a URL is allowed based on robots.txt rules
-    public static boolean isAllowed(String url) {
+    public boolean isAllowed(String url) {
         String normalizedUrl = URLNormalizer.normalize(url);
-        String baseUrl = URLNormalizer.getBaseURL(normalizedUrl);
-        String robotsUrl = baseUrl + "/robots.txt";
 
-        if (!robotsCache.containsKey(robotsUrl)) {
+        // if the url already tested return its cache
+        if (urlsCache.containsKey(normalizedUrl)) {
+            return urlsCache.get(normalizedUrl);
+        }
+
+        String baseUrl = URLNormalizer.getBaseURL(normalizedUrl);
+
+        if (!isParsed(url)) {
             fetchRobotsTxt(url);
         }
-        if (robotsCache.get(robotsUrl) == null) {
-            return true;
-        }
-        String robotsContent = robotsCache.get(robotsUrl);
-        if (robotsContent.isEmpty()) {
+
+        List<List<String>> robotsList = robotsCache.get(baseUrl);
+
+        if (robotsList == null || robotsList.isEmpty()) {
+            // Allow access if no rules are defined
+            urlsCache.put(normalizedUrl, true);
             return true;
         }
 
         String path = normalizedUrl.substring(baseUrl.length());
-        boolean isAllowed = true;
 
+        // Check allow rules first, as they take precedence
+        for (String allowRule : robotsList.get(0)) {
+            if (matchesRule(path, allowRule)) {
+                // cache the url result
+                urlsCache.put(normalizedUrl, true);
+                return true;
+            }
+        }
+        // Check disallow rules if no allow rule matches
+        for (String disallowRule : robotsList.get(1)) {
+            if (matchesRule(path, disallowRule)) {
+                // cache the url result
+                urlsCache.put(normalizedUrl, false);
+                return false;
+            }
+        }
+
+        // Allow access by default if no rules match
+        urlsCache.put(normalizedUrl, true);
+        return true;
+    }
+
+    // Extracts allow and disallow rules from robots.txt content
+    private List<List<String>> extractRules(String content) {
         List<String> disallowRules = new ArrayList<>();
         List<String> allowRules = new ArrayList<>();
         boolean isUserAgentRelevant = false;
-        String[] lines = robotsContent.split("\n");
+        String[] lines = content.split("\n");
 
         for (String line : lines) {
             line = line.trim();
             if (line.isEmpty() || line.startsWith("#")) {
+                // Skip empty lines and comments
                 continue;
             }
 
             if (line.toLowerCase().startsWith("user-agent:")) {
                 String userAgent = line.substring("user-agent:".length()).trim();
+                // Apply rules for our UserAgent or wildcard
                 isUserAgentRelevant = userAgent.equals("*") || userAgent.equalsIgnoreCase(UserAgent);
                 continue;
             }
@@ -126,30 +164,24 @@ public class RobotsTxtParser {
             }
         }
 
-        for (String allowRule : allowRules) {
-            if (matchesRule(path, allowRule)) {
-                return true;
-            }
-        }
-        for (String disallowRule : disallowRules) {
-            if (matchesRule(path, disallowRule)) {
-                return false;
-            }
-        }
-
-        return isAllowed;
+        List<List<String>> res = new ArrayList<>();
+        res.add(allowRules);
+        res.add(disallowRules);
+        return res;
     }
 
     // Matches a URL path against a robots.txt rule
-    private static boolean matchesRule(String path, String rule) {
+    private boolean matchesRule(String path, String rule) {
         if (rule.isEmpty()) {
             return false;
         }
 
+        // Convert rule to regex, escaping special characters
         String regex = rule.replace("*", ".*");
         regex = regex.replaceAll("([\\[\\]{}()+?^$|])", "\\\\$1");
         regex = "^" + regex;
 
         return path.matches(regex);
     }
+
 }

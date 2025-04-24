@@ -4,36 +4,52 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.jsoup.nodes.Document;
 
 public class VisitedSet {
-    private static Set<String> visitedUrls = new HashSet<>();
-    private static Set<String> visitedPages = new HashSet<>();
+    private  Set<String> visitedUrls = ConcurrentHashMap.newKeySet();
+    private  Set<String> visitedPages = ConcurrentHashMap.newKeySet();
     // Adds a normalized URL to the visited set
-    public static void addVisitedUrl(String url) {
+    public void addVisitedUrl(String url) {
+        if (url == null) {
+            return;
+        }
+
         String normalizedUrl = URLNormalizer.normalize(url);
-        synchronized (visitedUrls) {
+        if (normalizedUrl != null) {
             visitedUrls.add(normalizedUrl);
         }
     }
 
     // Adds a compact string representation of a page to the visited set
-    public static void addVisitedPage(Document doc) {
+    public  void addVisitedPage(Document doc) {
         String page = URLNormalizer.getCompactString(doc);
-        synchronized (visitedPages) {
-            visitedPages.add(page);
-        }
+        visitedPages.add(page);
     }
 
     // Checks if a normalized URL is in the visited set
-    public static boolean containsVisitedUrl(String url) {
+    public boolean containsVisitedUrl(String url) {
+        if (url == null) {
+            return false;
+        }
+
         String normalizedUrl = URLNormalizer.normalize(url);
+        if (normalizedUrl == null) {
+            return false; // Can't check a null URL
+        }
+
         return visitedUrls.contains(normalizedUrl);
     }
 
     // Checks if a compact string representation of a page is in the visited set
-    public static boolean containsVisitedPage(Document doc) {
+    public  boolean containsVisitedPage(Document doc) {
         String page = URLNormalizer.getCompactString(doc);
         return visitedPages.contains(page);
+    }
+
+    public  int getVisitedPagesCount() {
+        return visitedPages.size();
     }
 }

@@ -4,29 +4,25 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 public class RobotsTxtParser {
-    private static final String UserAgent = "MAMA_Search";
+    private final String UserAgent = "MAMA_Search";
     // Cache to store robots.txt rules for each base URL to avoid redundant fetching
-    private static final Map<String, List<List<String>>> robotsCache = new ConcurrentHashMap<>();
+    private final Map<String, List<List<String>>> robotsCache = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> urlsCache = new ConcurrentHashMap<>();
 
     // Fetches and caches the robots.txt content for a given URL
-    public static List<List<String>> fetchRobotsTxt(String url) {
-        if (isParsed(url)) {
-            return robotsCache.get(URLNormalizer.getBaseURL(url));
-        }
+    private void fetchRobotsTxt(String url) {
 
         String baseUrl;
         baseUrl = URLNormalizer.getBaseURL(url);
         if (baseUrl == null || baseUrl.trim().isEmpty()) {
             // Return null if the base URL is invalid or cannot be extracted
-            return null;
+            return;
         }
 
         String robotsUrl = baseUrl + "/robots.txt";
@@ -42,9 +38,8 @@ public class RobotsTxtParser {
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 // Cache empty list for non-200 responses to avoid repeated requests
-                List<List<String>> empty = new ArrayList<>();
-                robotsCache.put(baseUrl, empty);
-                return null;
+                robotsCache.put(baseUrl, new ArrayList<>());
+                return;
             }
 
             StringBuilder content = new StringBuilder();
@@ -63,14 +58,12 @@ public class RobotsTxtParser {
 
             // Cache parsed rules, or empty list if no rules are found
             robotsCache.put(baseUrl, robotsContent.isEmpty() ? new ArrayList<>() : robotsList);
-            return robotsList;
 
         } catch (IOException e) {
             // Cache empty list on error to prevent repeated failed attempts
             robotsCache.put(baseUrl, new ArrayList<>());
 
             System.err.println("Error fetching robots.txt: " + e.getMessage());
-            return null;
         } finally {
             if (connection != null) {
                 // Ensure connection is closed to prevent resource leaks
@@ -80,7 +73,7 @@ public class RobotsTxtParser {
     }
 
     // Checks if the robots.txt for a URL has already been parsed
-    public static boolean isParsed(String url) {
+    private boolean isParsed(String url) {
         String baseUrl = URLNormalizer.getBaseURL(url);
         if (baseUrl == null || baseUrl.trim().isEmpty()) {
             return false;
@@ -89,8 +82,14 @@ public class RobotsTxtParser {
     }
 
     // Determines if a URL is allowed based on robots.txt rules
-    public static boolean isAllowed(String url) {
+    public boolean isAllowed(String url) {
         String normalizedUrl = URLNormalizer.normalize(url);
+
+        // if the url already tested return its cache
+        if (urlsCache.containsKey(normalizedUrl)) {
+            return urlsCache.get(normalizedUrl);
+        }
+
         String baseUrl = URLNormalizer.getBaseURL(normalizedUrl);
 
         if (!isParsed(url)) {
@@ -101,6 +100,7 @@ public class RobotsTxtParser {
 
         if (robotsList == null || robotsList.isEmpty()) {
             // Allow access if no rules are defined
+            urlsCache.put(normalizedUrl, true);
             return true;
         }
 
@@ -109,22 +109,27 @@ public class RobotsTxtParser {
         // Check allow rules first, as they take precedence
         for (String allowRule : robotsList.get(0)) {
             if (matchesRule(path, allowRule)) {
+                // cache the url result
+                urlsCache.put(normalizedUrl, true);
                 return true;
             }
         }
         // Check disallow rules if no allow rule matches
         for (String disallowRule : robotsList.get(1)) {
             if (matchesRule(path, disallowRule)) {
+                // cache the url result
+                urlsCache.put(normalizedUrl, false);
                 return false;
             }
         }
 
         // Allow access by default if no rules match
+        urlsCache.put(normalizedUrl, true);
         return true;
     }
 
     // Extracts allow and disallow rules from robots.txt content
-    private static List<List<String>> extractRules(String content) {
+    private List<List<String>> extractRules(String content) {
         List<String> disallowRules = new ArrayList<>();
         List<String> allowRules = new ArrayList<>();
         boolean isUserAgentRelevant = false;
@@ -166,7 +171,7 @@ public class RobotsTxtParser {
     }
 
     // Matches a URL path against a robots.txt rule
-    private static boolean matchesRule(String path, String rule) {
+    private boolean matchesRule(String path, String rule) {
         if (rule.isEmpty()) {
             return false;
         }

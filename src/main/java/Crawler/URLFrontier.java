@@ -1,18 +1,31 @@
 package Crawler;
 
+import java.text.Normalizer;
 import java.util.*;
 
 public class URLFrontier {
     private final Queue<String> queue;
+    private final VisitedSet vs;
+    private final int maxSize = 10000;
 
-    public URLFrontier() {
+
+
+    public URLFrontier(VisitedSet vs) {
+
         queue = new LinkedList<>();
+        this.vs = vs;
+
     }
 
     // Adds a URL to the queue in a thread-safe manner
     public void addURL(String url) {
+        String normalizedUrl = URLNormalizer.normalize(url);
+
         synchronized (queue) {
-            queue.add(url);
+            if (queue.size() >= maxSize) {
+                return;
+            }
+            queue.add(normalizedUrl);
         }
     }
 

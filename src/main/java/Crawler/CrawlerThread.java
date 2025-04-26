@@ -20,7 +20,7 @@ public class CrawlerThread implements Runnable {
     private final int crawlDelay; // Delay in milliseconds
     private final String userAgent;
     private static final AtomicInteger pageCount = new AtomicInteger(0);
-    public static final int maxPages = 1000;
+    public static final int maxPages = 200;
 
     CrawlerThread(VisitedSet vs, RobotsTxtParser robotsTxtParser, URLFrontier frontier, MongoDBConnection mongoDBConnection, int crawlDelay) {
         this.visitedSet = vs;
@@ -73,7 +73,7 @@ public class CrawlerThread implements Runnable {
         visitedSet.addVisitedPage(doc);
 
         // Add the document to the database
-        mongoDBConnection.insertCrawledPage(normalizedUrl, doc.title(), doc.body().text());
+        mongoDBConnection.insertCrawledPage(normalizedUrl, doc.title(), doc.html());
         // Extract and add new URLs to the frontier
         ArrayList<String> urls = extractUrls(doc);
         for (String extractedUrl : urls) {

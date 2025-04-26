@@ -7,10 +7,13 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class CrawlerThread implements Runnable {
     private final VisitedSet visitedSet;
@@ -76,10 +79,16 @@ public class CrawlerThread implements Runnable {
         mongoDBConnection.insertCrawledPage(normalizedUrl, doc.title(), doc.html());
         // Extract and add new URLs to the frontier
         ArrayList<String> urls = extractUrls(doc);
+        urls = urls.stream()
+                .map(URLNormalizer::normalize)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        visitedSet.addUrlExtractedUrls(normalizedUrl, urls);
+
         for (String extractedUrl : urls) {
-            String normalizedExtractedUrl = URLNormalizer.normalize(extractedUrl);
-            if (normalizedExtractedUrl != null && !visitedSet.containsVisitedUrl(normalizedExtractedUrl)) {
-                frontier.addURL(normalizedExtractedUrl);
+            if (extractedUrl != null && !visitedSet.containsVisitedUrl(extractedUrl)) {
+                frontier.addURL(extractedUrl);
             }
         }
     }

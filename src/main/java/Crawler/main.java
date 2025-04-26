@@ -6,17 +6,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class main {
     // Configuration parameters
-    private static final int NUM_THREADS = 8;
+    private static final int NUM_THREADS = 32;
     private static final int CRAWL_DELAY = 200; // milliseconds
     private static final int MONITOR_INTERVAL = 5000; // milliseconds
     private static final int MAX_RUNTIME = 3600000; // 1 hour in milliseconds
 
     public static void main(String[] args) {
         // Initialize components
-        VisitedSet visitedSet = new VisitedSet();
+        MongoDBConnection mongoDBConnection = new MongoDBConnection();
+        VisitedSet visitedSet = new VisitedSet(mongoDBConnection); // Fixed constructor
         RobotsTxtParser robotsParser = new RobotsTxtParser();
         URLFrontier frontier = new URLFrontier(visitedSet);
-        MongoDBConnection mongoDBConnection = new MongoDBConnection();
 
         try {
             // Add seed URLs
@@ -45,6 +45,11 @@ public class main {
 
             System.out.println("Crawl completed. Total pages crawled: " + visitedSet.getVisitedPagesCount());
             System.out.println("Pages remaining in frontier: " + frontier.size());
+
+            // Upload URL graph data to MongoDB
+            System.out.println("Uploading URL graph data to MongoDB...");
+            visitedSet.filterAndUploadUrlExtractedUrls();
+            System.out.println("URL graph data upload completed.");
         } finally {
             // Always close the MongoDB connection when done
             mongoDBConnection.close();
@@ -54,15 +59,16 @@ public class main {
 
     private static void addSeedUrls(URLFrontier frontier) {
         String[] seeds = {
-                // General websites
-                "https://en.wikipedia.org",
-                "https://github.com",
-                "https://www.reddit.com",
 
                 // News sites
                 "https://www.bbc.com",
                 "https://www.cnn.com",
                 "https://www.nytimes.com",
+
+                // General websites
+                "https://en.wikipedia.org",
+                "https://github.com",
+                "https://www.reddit.com",
 
                 // Tech sites
                 "https://techcrunch.com",

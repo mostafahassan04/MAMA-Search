@@ -20,5 +20,17 @@ public class InvertedIndex {
     public Map<String, Map<String, WordData>> getIndex() {
         return index;
     }
+    public void printIndex() {
+        for (String word : index.keySet()) {
+            System.out.println("Word: " + word);
+            Map<String, WordData> docs = index.get(word);
+            for (String url : docs.keySet()) {
+                WordData data = docs.get(url);
+                System.out.println("  URL: " + url);
+                System.out.println("    Positions: " + data.getPositions());
+                System.out.println("    TF-IDF Score: " + data.getScore());
+            }
+        }
+    }
 }
 

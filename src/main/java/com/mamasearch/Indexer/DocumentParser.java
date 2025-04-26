@@ -1,55 +1,65 @@
 package com.mamasearch.Indexer;
 
 import org.jsoup.Jsoup;
-
-import java.util.ArrayList;
-import java.util.List;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DocumentParser {
     public List<ParsedWord> parseFile(String htmlContent) {
         List<ParsedWord> parsedWords = new ArrayList<>();
+        Set<String> processedText = new HashSet<>(); // To track processed text
         int position = 0;
 
         Document doc = Jsoup.parse(htmlContent);
 
         // Title
         String title = doc.title();
-        position = addWords(parsedWords, title, "title", position);
+        if (!title.isEmpty() && !processedText.contains(title)) {
+            position = addWords(parsedWords, title, "title", position);
+            processedText.add(title);
+        }
 
         // h1
         Elements h1Tags = doc.select("h1");
-        position = extractAndAdd(parsedWords, h1Tags, "h1", position);
+        position = extractAndAdd(parsedWords, h1Tags, "h1", position, processedText);
 
         // h2
         Elements h2Tags = doc.select("h2");
-        position = extractAndAdd(parsedWords, h2Tags, "h2", position);
+        position = extractAndAdd(parsedWords, h2Tags, "h2", position, processedText);
 
         // h3
         Elements h3Tags = doc.select("h3");
-        position = extractAndAdd(parsedWords, h3Tags, "h3", position);
+        position = extractAndAdd(parsedWords, h3Tags, "h3", position, processedText);
 
-        // Normal (rest of body)
-        Elements allTextElements = doc.body().getAllElements();
-        Elements normalTags = new Elements();
-        for (Element element : allTextElements) {
-            if (!h1Tags.contains(element) && !h2Tags.contains(element) && !h3Tags.contains(element)) {
-                normalTags.add(element);
+        // Normal (rest of body, excluding already processed elements)
+        Elements bodyElements = doc.body().select("*"); // Select all elements in body
+        for (Element element : bodyElements) {
+            // Skip h1, h2, h3, and script/style elements
+            if (element.tagName().matches("h1|h2|h3|script|style")) {
+                continue;
+            }
+            String text = element.ownText().trim(); // Use ownText to avoid text from child elements
+            if (!text.isEmpty() && !processedText.contains(text)) {
+                position = addWords(parsedWords, text, "normal", position);
+                processedText.add(text);
             }
         }
-        position = extractAndAdd(parsedWords, normalTags, "normal", position);
 
         return parsedWords;
     }
 
-    private int extractAndAdd(List<ParsedWord> list, Elements elements, String tag, int startPosition) {
+    private int extractAndAdd(List<ParsedWord> list, Elements elements, String tag, int startPosition, Set<String> processedText) {
         for (Element element : elements) {
             String text = element.text().trim();
-            if (!text.isEmpty()) {
+            if (!text.isEmpty() && !processedText.contains(text)) {
                 startPosition = addWords(list, text, tag, startPosition);
+                processedText.add(text);
             }
         }
         return startPosition;
@@ -58,7 +68,9 @@ public class DocumentParser {
     private int addWords(List<ParsedWord> list, String text, String tag, int startPosition) {
         String[] words = text.split("\\s+");
         for (String word : words) {
-            list.add(new ParsedWord(word, tag, startPosition++));
+            if (!word.isEmpty()) { // Skip empty words
+                list.add(new ParsedWord(word, tag, startPosition++));
+            }
         }
         return startPosition;
     }

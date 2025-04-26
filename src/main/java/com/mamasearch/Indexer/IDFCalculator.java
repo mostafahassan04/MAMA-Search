@@ -24,7 +24,7 @@ public class IDFCalculator {
         for (Map.Entry<String, Integer> entry : docFreq.entrySet()) {
             String word = entry.getKey();
             int df = entry.getValue();
-            double value = Math.log((double) totalDocs / df);
+            double value = Math.log(1+((double) totalDocs / df));
             idf.put(word, value);
         }
 

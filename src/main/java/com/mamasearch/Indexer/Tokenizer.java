@@ -28,6 +28,19 @@ public class Tokenizer {
         return stopwords.contains(word.toLowerCase());
     }
 
+    private static boolean isValidWord(String word) {
+
+        if (word == null || word.isEmpty()) return false;
+        if (word.length() < 2 || word.length() > 25) {
+            return false;
+        }
+        if (!word.matches("[a-zA-Z]+")) {
+            return false;
+        }
+        return true;
+    }
+
+
     private static String stemWord(String word) {
         englishStemmer stemmer = new englishStemmer();
         stemmer.setCurrent(word);
@@ -42,7 +55,7 @@ public class Tokenizer {
 
         for (ParsedWord pw : parsedWords) {
             String cleaned = pw.getWord().replaceAll("[^a-zA-Z]", "").toLowerCase();
-            if (!cleaned.isEmpty() && !isStopword(cleaned)) {
+            if (!isStopword(cleaned) && !isValidWord(cleaned)) {
                 String stemmedWord = stemWord(cleaned);
                 pw.setWord(stemmedWord);
                 filtered.add(pw);

@@ -17,7 +17,7 @@ public class InvertedIndex {
         }
     }
 
-    public Map<String, Map<String, WordData>> getIndex() {
+    public Map<String, Map<String, WordData>> getInvertedIndex() {
         return index;
     }
     public void printIndex() {

@@ -52,7 +52,7 @@ public class main {
             System.out.println("URL graph data upload completed.");
         } finally {
             // Always close the MongoDB connection when done
-            mongoDBConnection.close();
+//            mongoDBConnection.close();
             System.out.println("MongoDB connection closed");
         }
     }

@@ -1,14 +1,18 @@
 package Server;
 
 import Processor.Processor;
+import Processor.QueryDocument;
+
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
+import org.bson.Document;
 
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,6 +46,8 @@ public class Api {
                     for (String token : result) {
                         System.out.println(token);
                     }
+                    ArrayList<Document> relevantDocuments = processor.getRelevantDocuments(result);
+
                 }
 
                 // For now, echo the query back as a response

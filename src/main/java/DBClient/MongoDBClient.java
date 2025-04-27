@@ -1,21 +1,16 @@
+package DBClient;
+
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoException;
 import com.mongodb.ServerApi;
 import com.mongodb.ServerApiVersion;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
 
 public class MongoDBClient {
     private static MongoClient mongoClient = null;
-    private static final String CONNECTION_STRING = System.getenv("MONGO_CONNECTION_STRING");
-    static {
-        if (CONNECTION_STRING == null || CONNECTION_STRING.isEmpty()) {
-            throw new IllegalStateException("Environment variable MONGO_CONNECTION_STRING is not set or is empty.");
-        }
-    }
+    private static final String CONNECTION_STRING = "mongodb+srv://alieldinalaa04:KRXfVax3xi5nyJSN@apt.kz2tkqr.mongodb.net";
     private static final String DATABASE_NAME = "test";
 
     private MongoDBClient() {}
@@ -27,7 +22,6 @@ public class MongoDBClient {
                     ServerApi serverApi = ServerApi.builder()
                             .version(ServerApiVersion.V1)
                             .build();
-
                     MongoClientSettings settings = MongoClientSettings.builder()
                             .applyConnectionString(new ConnectionString(CONNECTION_STRING))
                             .serverApi(serverApi)
@@ -40,7 +34,9 @@ public class MongoDBClient {
     }
 
     public static MongoDatabase getDatabase() {
-        return getClient().getDatabase(DATABASE_NAME);
+        MongoClient m = getClient();
+        MongoDatabase db = m.getDatabase(DATABASE_NAME);
+        return db;
     }
 
     public static void closeClient() {

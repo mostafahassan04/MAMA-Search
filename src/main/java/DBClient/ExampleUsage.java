@@ -1,3 +1,5 @@
+package DBClient;
+
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;

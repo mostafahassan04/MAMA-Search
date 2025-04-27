@@ -55,7 +55,7 @@ public class Tokenizer {
 
         for (ParsedWord pw : parsedWords) {
             String cleaned = pw.getWord().replaceAll("[^a-zA-Z]", "").toLowerCase();
-            if (!isStopword(cleaned) && !isValidWord(cleaned)) {
+            if (!isStopword(cleaned) && isValidWord(cleaned)) {
                 String stemmedWord = stemWord(cleaned);
                 pw.setWord(stemmedWord);
                 filtered.add(pw);

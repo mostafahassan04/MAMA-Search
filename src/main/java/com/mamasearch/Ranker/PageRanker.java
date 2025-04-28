@@ -14,6 +14,7 @@ import java.util.Map;
 public class PageRanker {
 
     private final int MAX_ITERATIONS = 50;
+    private final double ERROR_THRESHOLD = 0.000001;
     private Map<String , Page> pages = new HashMap<>();
 
 
@@ -56,7 +57,9 @@ public class PageRanker {
         }
         double d = 0.85;
 
+        double currentMaxErrorThreshold = 1.0;
         for (int i = 0; i < MAX_ITERATIONS; i++) {
+
             for (Map.Entry<String, Page> entry : pages.entrySet()) {
                 Page page = entry.getValue();
                 double sum = 0.0;
@@ -68,10 +71,14 @@ public class PageRanker {
                 }
                 double newRank = (1 - d) / pages.size() + d * sum;
                 nextRanks.put(page, newRank);
+                currentMaxErrorThreshold = Math.max(currentMaxErrorThreshold,Math.abs(newRank-currentRanks.get(page)));y
             }
             currentRanks.clear();
             currentRanks.putAll(nextRanks);
             nextRanks.clear();
+
+            if(currentMaxErrorThreshold<=ERROR_THRESHOLD)
+                break;
         }
         for (Map.Entry<Page, Double> finalEntry : currentRanks.entrySet()) {
             finalEntry.getKey().setPageRank(finalEntry.getValue());

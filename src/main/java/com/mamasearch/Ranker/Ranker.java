@@ -1,4 +1,4 @@
-package com.mamasearch;
+package com.mamasearch.Ranker;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -8,93 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.*;
 
-class Document {
-    private final String id;
-    private final Map<String, Integer> bodyTermsFreq;
-    private final Map<String, Integer> titleTermsFreq;
-    private final Map<String, Integer> headerTermsFreq;
-    private final Map<String, Integer> urlTermsFreq;
-    private final Integer totalTermsCount;
-
-    Document(String id,Integer totalTermsCount,Map<String , Integer> bodyTermsFreq , Map<String , Integer>titleTermsFreq,
-    Map<String,Integer> headerTermsFreq , Map<String,Integer> urlTermsFreq) {
-        this.id = id;
-        this.totalTermsCount = totalTermsCount;
-        this.bodyTermsFreq = bodyTermsFreq;
-        this.titleTermsFreq = titleTermsFreq;
-        this.headerTermsFreq = headerTermsFreq;
-        this.urlTermsFreq = urlTermsFreq;
-    }
-
-    public Integer getBodyTermFreq(String term) {
-        return bodyTermsFreq.get(term);
-    }
-    public Integer getTitleTermFreq(String term) {
-        return titleTermsFreq.get(term);
-    }
-    public Integer getHeaderTermFreq(String term) {
-        return headerTermsFreq.get(term);
-    }
-    public Integer getURLTermFreq(String term) {
-        return urlTermsFreq.get(term);
-    }
-
-    public Integer getTotalTermsCount() {
-        return totalTermsCount;
-    }
-
-    public String getId() {
-        return id;
-    }
-}
-
-class ScoredDocument implements Comparable<ScoredDocument> {
-    private final Document document;
-    private Double score;
-
-    ScoredDocument(Document document) {
-        this.document = document;
-        this.score = 0.0;
-    }
-
-    public void setScore(Double score) {
-        this.score = score;
-    }
-
-    public Double getScore() {
-        return score;
-    }
-
-    @Override
-    public int compareTo(ScoredDocument other) {
-        return Double.compare(other.score, this.score);
-    }
-
-    public Document getDocument() {
-        return document;
-    }
-}
-
-class Page{
-    private final String url;
-    private Double pageRank;
-    Page(String url ){
-        this.url = url;
-        this.pageRank = 0.0 ;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public Double getPageRank() {
-        return pageRank;
-    }
-
-    public void setPageRank(Double pageRank) {
-        this.pageRank = pageRank;
-    }
-}
+import static java.util.Map.entry;
 
 
 public class Ranker {
@@ -214,6 +128,82 @@ public class Ranker {
             return 0.0;
         return Math.log10((double) totalNumberOfDocuments / docsWithTerm);
     }
+    public static void main(String[] args) {
 
+
+
+        Document doc1 = new Document(
+                "doc1",
+                6,
+                Map.of("hello", 2, "this", 1, "is", 1, "test", 1, "ranker", 1),
+                Map.of(),
+                Map.of(),
+                Map.of()
+        );
+
+        Document doc2 = new Document(
+                "doc2",
+                9,
+                Map.of("forest", 1, "of", 1, "the", 1, "koko", 1, "is", 1, "far", 1, "beyond", 1, "hills", 1),
+                Map.of(),
+                Map.of(),
+                Map.of()
+        );
+
+        Document doc3 = new Document(
+                "doc3",
+                4,
+                Map.of("hello", 1, "ranker", 1, "test", 1, "example", 1),
+                Map.of(),
+                Map.of(),
+                Map.of()
+        );
+        // List of documents
+        List<Document> documents = List.of(doc1, doc2, doc3);
+
+        // Query terms
+        List<String> queryTerms = List.of("hello", "ranker", "test");
+
+        // Document frequencies (term -> number of documents containing the term)
+        Map<String, Integer> documentFrequencies = Map.ofEntries(
+                entry("hello", 2)
+                , entry("this", 1)
+                , entry("is", 2)
+                , entry("test", 2)
+                , entry("ranker", 2)
+                , entry("forest", 1)
+                , entry("of", 1)
+                , entry("the", 1)
+                , entry("koko", 1)
+                , entry("far", 1)
+                , entry("hills", 1)
+                , entry("beyond", 1)
+        );
+//                "example", 1
+
+
+        // Total number of documents
+        int totalNumberOfDocuments = documents.size();
+
+        // Initialize Ranker
+        Ranker ranker = new Ranker(totalNumberOfDocuments,documentFrequencies);
+
+        try {
+            ranker.rankPages();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Rank documents
+        List<ScoredDocument> rankedDocuments = ranker.rankDocument(queryTerms, documents);
+
+        // Print results
+        for (ScoredDocument scoredDocument : rankedDocuments) {
+            System.out.println("Document ID: " + scoredDocument.getDocument().getId() + ", Score: " + scoredDocument.getScore());
+        }
+
+
+
+    }
 
 }

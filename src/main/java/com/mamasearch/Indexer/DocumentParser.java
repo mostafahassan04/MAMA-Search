@@ -5,10 +5,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DocumentParser {
     public List<ParsedWord> parseFile(String htmlContent) {
@@ -66,7 +63,8 @@ public class DocumentParser {
     }
 
     private int addWords(List<ParsedWord> list, String text, String tag, int startPosition) {
-        String[] words = text.split("\\s+");
+        List<String> words = Arrays.asList(text.split("\\s+"));
+        words = Tokenizer.filter(words); // Filter and stem words
         for (String word : words) {
             if (!word.isEmpty()) { // Skip empty words
                 list.add(new ParsedWord(word, tag, startPosition++));

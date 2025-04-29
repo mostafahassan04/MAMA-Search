@@ -50,15 +50,14 @@ public class Tokenizer {
         return word;  // return the original word if stemming doesn't change it
     }
 
-    public static List<ParsedWord> filter(List<ParsedWord> parsedWords) {
-        List<ParsedWord> filtered = new ArrayList<>();
+    public static List<String> filter(List<String> Words) {
+        List<String> filtered = new ArrayList<>();
 
-        for (ParsedWord pw : parsedWords) {
-            String cleaned = pw.getWord().replaceAll("[^a-zA-Z]", "").toLowerCase();
-            if (!isStopword(cleaned) && isValidWord(cleaned)) {
-                String stemmedWord = stemWord(cleaned);
-                pw.setWord(stemmedWord);
-                filtered.add(pw);
+        for (String word : Words) {
+            word = word.replaceAll("[^a-zA-Z]", "").toLowerCase();
+            if (!isStopword(word) && isValidWord(word)) {
+                word = stemWord(word);
+                filtered.add(word);
             }
         }
 

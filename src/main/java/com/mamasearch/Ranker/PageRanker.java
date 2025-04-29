@@ -24,7 +24,7 @@ public class PageRanker {
     }
 
 
-    public void run(){
+    public void rank(){
 
         Map<String, ArrayList<String>> pagesGraph = new HashMap<>();
         FindIterable<Document> documents = collection.find();

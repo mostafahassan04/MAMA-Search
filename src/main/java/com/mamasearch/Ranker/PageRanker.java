@@ -1,11 +1,11 @@
 package com.mamasearch.Ranker;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
+import DBClient.MongoDBClient;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,17 +14,24 @@ import java.util.Map;
 public class PageRanker {
 
     private final Map<String, Page> pages = new HashMap<>();
+    private final MongoCollection<Document> collection;
 
 
-    public void run() throws FileNotFoundException {
+    PageRanker(){
+        MongoDatabase database = MongoDBClient.getDatabase();
+        String COLLECTION_NAME = "url_graph";
+        this.collection = database.getCollection(COLLECTION_NAME);
+    }
 
-        Map<String, ArrayList<String>> pagesGraph;
-        try {
-            pagesGraph = new Gson().fromJson(new FileReader("./src/main/resources/crawler-output.json"),
-                    new TypeToken<Map<String, Object>>() {
-                    }.getType());
-        } catch (JsonSyntaxException e) {
-            throw new RuntimeException(e);
+
+    public void run(){
+
+        Map<String, ArrayList<String>> pagesGraph = new HashMap<>();
+        FindIterable<Document> documents = collection.find();
+        for(Document doc :documents){
+            String url = doc.getString("url");
+            List<String >links = doc.getList("extractedUrls",String.class);
+            pagesGraph.put(url,new ArrayList<>(links));
         }
         Map<Page, List<Page>> inboundLinks = new HashMap<>();
         Map<Page, Integer> outboundCount = new HashMap<>();

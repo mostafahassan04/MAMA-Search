@@ -5,17 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="385c40be-58ed-468d-b8bc-26b8470f9b1d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/Processor/QueryDocument.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Crawler/MongoDBConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Crawler/MongoDBConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Crawler/main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Crawler/main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ExampleUsage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/DBClient/ExampleUsage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MongoDBClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/DBClient/MongoDBClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Processor/Processor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Processor/Processor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Server/Api.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server/Api.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IndexerMongoDBConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IndexerMongoDBConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Tokenizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Tokenizer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,7 +59,7 @@
     "Application.mainfortest.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "Indexer",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/Mostafa/MAMA_Search/MAMA-Search/pom.xml",
     "node.js.detected.package.eslint": "true",

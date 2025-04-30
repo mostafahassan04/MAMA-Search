@@ -5,17 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="385c40be-58ed-468d-b8bc-26b8470f9b1d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/Processor/QueryDocument.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Crawler/MongoDBConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Crawler/MongoDBConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Crawler/main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Crawler/main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ExampleUsage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/DBClient/ExampleUsage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MongoDBClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/DBClient/MongoDBClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Processor/Processor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Processor/Processor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Server/Api.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server/Api.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IndexerMongoDBConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IndexerMongoDBConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Tokenizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Tokenizer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TestingMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TestingMain.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,30 +52,30 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.Api.executor": "Run",
-    "Application.ExampleUsage.executor": "Run",
-    "Application.TestingMain.executor": "Run",
-    "Application.main.executor": "Run",
-    "Application.mainfortest.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/Mostafa/MAMA_Search/MAMA-Search/pom.xml",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.2",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Api.executor&quot;: &quot;Run&quot;,
+    &quot;Application.ExampleUsage.executor&quot;: &quot;Run&quot;,
+    &quot;Application.TestingMain.executor&quot;: &quot;Run&quot;,
+    &quot;Application.main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.mainfortest.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Indexer&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Mostafa/MAMA_Search/MAMA-Search/pom.xml&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
-  <component name="RunManager" selected="Application.Api">
+}</component>
+  <component name="RunManager" selected="Application.TestingMain">
     <configuration name="Api" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Server.Api" />
       <module name="MAMA-Search" />
@@ -137,8 +130,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Api" />
         <item itemvalue="Application.TestingMain" />
+        <item itemvalue="Application.Api" />
         <item itemvalue="Application.main" />
         <item itemvalue="Application.mainfortest" />
       </list>
@@ -162,6 +155,9 @@
       <updated>1745680660493</updated>
       <workItem from="1745680662458" duration="11140000" />
       <workItem from="1745756965197" duration="12996000" />
+      <workItem from="1745948928756" duration="19551000" />
+      <workItem from="1746000933403" duration="3129000" />
+      <workItem from="1746009938623" duration="4762000" />
     </task>
     <servers />
   </component>

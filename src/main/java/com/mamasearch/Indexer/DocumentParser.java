@@ -8,7 +8,7 @@ import org.jsoup.select.Elements;
 import java.util.*;
 
 public class DocumentParser {
-    public List<ParsedWord> parseFile(String htmlContent) {
+    public static List<ParsedWord> ParesingandFilteringDocuments(String htmlContent) {
         List<ParsedWord> parsedWords = new ArrayList<>();
         Set<String> processedText = new HashSet<>(); // To track processed text
         int position = 0;
@@ -17,7 +17,7 @@ public class DocumentParser {
 
         // Title
         String title = doc.title();
-        if (!title.isEmpty() && !processedText.contains(title)) {
+        if (!title.isEmpty()) {
             position = addWords(parsedWords, title, "title", position);
             processedText.add(title);
         }
@@ -51,7 +51,7 @@ public class DocumentParser {
         return parsedWords;
     }
 
-    private int extractAndAdd(List<ParsedWord> list, Elements elements, String tag, int startPosition, Set<String> processedText) {
+    private static int extractAndAdd(List<ParsedWord> list, Elements elements, String tag, int startPosition, Set<String> processedText) {
         for (Element element : elements) {
             String text = element.text().trim();
             if (!text.isEmpty() && !processedText.contains(text)) {
@@ -62,7 +62,7 @@ public class DocumentParser {
         return startPosition;
     }
 
-    private int addWords(List<ParsedWord> list, String text, String tag, int startPosition) {
+    private static int addWords(List<ParsedWord> list, String text, String tag, int startPosition) {
         List<String> words = Arrays.asList(text.split("\\s+"));
         words = Tokenizer.filter(words); // Filter and stem words
         for (String word : words) {

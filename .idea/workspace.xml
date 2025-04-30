@@ -5,8 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="385c40be-58ed-468d-b8bc-26b8470f9b1d" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/DocumentData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/DocumentData.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/DocumentParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/DocumentParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Tokenizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Tokenizer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IDFCalculator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IDFCalculator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Indexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Indexer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IndexerMongoDBConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IndexerMongoDBConnection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/InvertedIndex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/InvertedIndex.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TFIDFScorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TFIDFScorer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TestingMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TestingMain.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -73,7 +80,7 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected="Application.Api">
+  <component name="RunManager" selected="Application.TestingMain">
     <configuration name="Api" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Server.Api" />
       <module name="MAMA-Search" />
@@ -128,8 +135,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Api" />
         <item itemvalue="Application.TestingMain" />
+        <item itemvalue="Application.Api" />
         <item itemvalue="Application.main" />
         <item itemvalue="Application.mainfortest" />
       </list>
@@ -153,7 +160,7 @@
       <updated>1745680660493</updated>
       <workItem from="1745680662458" duration="11140000" />
       <workItem from="1745756965197" duration="12996000" />
-      <workItem from="1745948928756" duration="1654000" />
+      <workItem from="1745948928756" duration="19245000" />
     </task>
     <servers />
   </component>

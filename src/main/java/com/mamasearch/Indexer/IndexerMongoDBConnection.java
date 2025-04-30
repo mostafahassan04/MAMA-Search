@@ -7,12 +7,12 @@ import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class IndexerMongoDBConnection {
     private MongoDatabase database;
     private MongoCollection<Document> collection1;
     private MongoCollection<Document> collection2;
-    private static final String DB_NAME = "MAMA_Search";
     private static final String COLLECTION1_NAME = "crawled_data";
     private static final String COLLECTION2_NAME = "inverted_index";
 
@@ -24,13 +24,20 @@ public class IndexerMongoDBConnection {
         this.collection2 = database.getCollection(COLLECTION2_NAME);
     }
 
-    public void insertInvertedIndex(String Word, String url, List<Integer> positions, double score) {
-        Document document = new Document();
-        document.append("word", Word)
-                .append("url", url)
-                .append("positions", positions)
-                .append("score", score);
-        collection2.insertOne(document);
+    public void insertInvertedIndex(Map<String, Map<String,WordData>> invertedIndex) {
+        for (String word : invertedIndex.keySet()) {
+            Map<String, WordData> docs = invertedIndex.get(word);
+
+            Document document = new Document();
+            document.append("word", word);
+
+            for (String url : docs.keySet()) {
+                document.append("url", url);
+                document.append("positions", docs.get(url).getPositions());
+                document.append("score", docs.get(url).getScore());
+            }
+            collection2.insertOne(document);
+        }
     }
 
 

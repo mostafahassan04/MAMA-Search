@@ -12,19 +12,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.net.URLDecoder;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.ArrayList;
+import java.util.*;
 
 public class Processor {
     private final englishStemmer stemmer;
     private final TokenizerME tokenizer;
-    private final String searchQuery;
+    private String searchQuery;
+    private String [] quotedParts;
     private final MongoCollection<Document> collection1;
     private static final String COLLECTION1_NAME = "inverted_index";
     private MongoDatabase database;
-
 
     private static final Set<String> stopwords = new HashSet<>(Arrays.asList(
             "i", "me", "my", "myself", "we", "our", "ours", "ourselves",
@@ -45,11 +42,7 @@ public class Processor {
             "should", "now"
     ));
 
-    public Processor(String searchQuery) throws IOException {
-        String prefix = "query=";
-        if (searchQuery.startsWith(prefix))
-            searchQuery = searchQuery.substring(prefix.length());
-        this.searchQuery = URLDecoder.decode(searchQuery, StandardCharsets.UTF_8.name());
+    public Processor() throws IOException {
         this.stemmer = new englishStemmer();
         try (InputStream modelIn = getClass().getResourceAsStream("/models/en-token.bin")) {
             if (modelIn == null) {
@@ -61,14 +54,37 @@ public class Processor {
         }
         this.database = MongoDBClient.getDatabase();
         this.collection1 = database.getCollection(COLLECTION1_NAME);
+
+        // Pre-warm MongoDB connection with ping operation
+        try {
+            database.runCommand(new Document("ping", 1));
+        } catch (Exception e) {
+            System.err.println("Failed to pre-warm MongoDB connection: " + e.getMessage());
+            System.err.flush();
+            throw new IOException("MongoDB ping failed: " + e.getMessage(), e);
+        }
+    }
+
+    public void setSearchQuery(String searchQuery) {
+        String prefix = "query=";
+        if (searchQuery.startsWith(prefix))
+            searchQuery = searchQuery.substring(prefix.length());
+        this.searchQuery = URLDecoder.decode(searchQuery, StandardCharsets.UTF_8).trim();
+    }
+
+    public void setQuotedParts(String[] quotedParts) {
+        for(int i = 0; i < quotedParts.length; i++) {
+            quotedParts[i] = URLDecoder.decode(quotedParts[i], StandardCharsets.UTF_8).trim();
+        }
+        this.quotedParts = quotedParts;
     }
 
     private static boolean isStopword(String word) {
         return stopwords.contains(word.toLowerCase());
     }
 
-    public String[] tokenizeAndStem() {
-        String[] tokens = tokenizer.tokenize(searchQuery);
+    public String[] tokenizeAndStem(String input) {
+        String[] tokens = tokenizer.tokenize(input);
         ArrayList<String> filteredTokens = new ArrayList<>();
         for (String token : tokens) {
             if (!isStopword(token)) {
@@ -78,14 +94,14 @@ public class Processor {
         String[] stemmedTokens = new String[filteredTokens.size()];
         for (int i = 0; i < filteredTokens.size(); i++) {
             String token = filteredTokens.get(i);
-            System.out.println("Before stemming: " + token);
             stemmedTokens[i] = stem(token);
             System.out.println("After stemming: " + stemmedTokens[i]);
         }
         return stemmedTokens;
     }
 
-    public ArrayList<Document> getRelevantDocuments(String[] words) {
+    public ArrayList<Document> getRelevantDocuments() {
+        String[] words = tokenizeAndStem(searchQuery);
         ArrayList<Document> relevantDocuments = new ArrayList<>();
         for(String word : words) {
             System.out.println("getting rel docs for word: " + word);
@@ -108,6 +124,62 @@ public class Processor {
 //            }
         }
         return relevantDocuments;
+    }
+
+    public ArrayList<Document> getPhraseDocuments() {
+        ArrayList<Document> phraseDocuments = new ArrayList<>();
+        for(int i = 0; i < quotedParts.length; i++) {
+            String[] words = tokenizeAndStem(quotedParts[i]);
+            ArrayList<Document> quoteDocuments = new ArrayList<>();
+            Map<String, List<Document>> mp = new HashMap<>();
+            for(String word : words) {
+                Document query = new Document("word", word);
+                Document doc = collection1.find(query).first();
+                System.out.println("got rel docs " + doc);
+                if(doc != null) {
+                    List<Document> occurrences = doc.containsKey("urls") ?
+                            doc.getList("urls", Document.class) :
+                            new ArrayList<>();
+                    for(Document occurrence : occurrences) {
+                        String url = occurrence.getString("url");
+                        if(url != null && !mp.containsKey(url)) {
+                            mp.put(url, new ArrayList<>());
+                        }
+                        mp.get(url).add(occurrence);
+                    }
+                }
+            }
+            System.out.println("mp size: " + mp.size());
+            for(String url : mp.keySet()) {
+                List<Document> occurrences = mp.get(url);
+                if(occurrences.size() == words.length) {
+                    List<Integer> firstWordPos = occurrences.getFirst().getList("positions", Integer.class);
+                    for(Integer pos : firstWordPos) {
+                        if(checkPosition(occurrences, pos, words.length, 1)) {
+                            // calc average score and append with url to quote documents
+                            quoteDocuments.add(occurrences.getFirst());
+                            System.out.println("url: " + url);
+                            break;
+                        }
+                    }
+                }
+            }
+            phraseDocuments.addAll(quoteDocuments);
+        }
+        return phraseDocuments;
+    }
+
+    private boolean checkPosition(List<Document> positions, Integer position, int length, int i) {
+        if(i == length - 1) {
+            return true;
+        }
+        Document doc = positions.get(i);
+        List<Integer> pos = doc.getList("positions", Integer.class);
+        if(pos.contains(position + 1)) {
+            return checkPosition(positions, position + 1, length, i+1);
+        } else {
+            return false;
+        }
     }
 
     private String stem(String text) {

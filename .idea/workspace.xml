@@ -6,13 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="385c40be-58ed-468d-b8bc-26b8470f9b1d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/DocumentData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/DocumentData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/DocumentParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/DocumentParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IDFCalculator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IDFCalculator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Indexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Indexer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Crawler/MongoDBConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Crawler/MongoDBConnection.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IndexerMongoDBConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IndexerMongoDBConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/InvertedIndex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/InvertedIndex.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TFIDFScorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TFIDFScorer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TestingMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TestingMain.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -160,7 +155,9 @@
       <updated>1745680660493</updated>
       <workItem from="1745680662458" duration="11140000" />
       <workItem from="1745756965197" duration="12996000" />
-      <workItem from="1745948928756" duration="19245000" />
+      <workItem from="1745948928756" duration="19551000" />
+      <workItem from="1746000933403" duration="3129000" />
+      <workItem from="1746009938623" duration="4762000" />
     </task>
     <servers />
   </component>

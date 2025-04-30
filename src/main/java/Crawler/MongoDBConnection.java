@@ -41,7 +41,7 @@ public class MongoDBConnection {
                     .append("extractedUrls", urls);
             collection2.insertOne(document);
     }
-
+//{ word: string, urls: [{url: string, positions:[int], score: double}]}
 //
 //    public void close() {
 //        if (MongoDBClient != null) {

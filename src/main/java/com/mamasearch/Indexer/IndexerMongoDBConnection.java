@@ -24,21 +24,31 @@ public class IndexerMongoDBConnection {
         this.collection2 = database.getCollection(COLLECTION2_NAME);
     }
 
-    public void insertInvertedIndex(Map<String, Map<String,WordData>> invertedIndex) {
+    public void insertInvertedIndex(Map<String, Map<String, WordData>> invertedIndex) {
+        System.out.println("Total number of words: " + invertedIndex.size());
         for (String word : invertedIndex.keySet()) {
             Map<String, WordData> docs = invertedIndex.get(word);
 
-            Document document = new Document();
-            document.append("word", word);
+            List<Document> urlsList = new ArrayList<>();
 
-            for (String url : docs.keySet()) {
-                document.append("url", url);
-                document.append("positions", docs.get(url).getPositions());
-                document.append("score", docs.get(url).getScore());
+            for (Map.Entry<String, WordData> entry : docs.entrySet()) {
+                String url = entry.getKey();
+                WordData wordData = entry.getValue();
+
+                Document urlDoc = new Document("url", url)
+                        .append("positions", wordData.getPositions())
+                        .append("score", wordData.getScore());
+
+                urlsList.add(urlDoc);
             }
+
+            Document document = new Document("word", word)
+                    .append("urls", urlsList);
+
             collection2.insertOne(document);
         }
     }
+
 
 
     public List<DocumentData> getDocuments() {

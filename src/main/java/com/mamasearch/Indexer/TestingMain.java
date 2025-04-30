@@ -9,7 +9,7 @@ public class TestingMain {
         Indexer indexer = new Indexer();
         IndexerMongoDBConnection mongo = new IndexerMongoDBConnection();
         indexer.processDocuments(mongo.getDocuments());
-//        mongo.insertInvertedIndex(indexer.getInvertedIndex());
+        mongo.insertInvertedIndex(indexer.getInvertedIndex());
         indexer.printIndex();
     }
 }

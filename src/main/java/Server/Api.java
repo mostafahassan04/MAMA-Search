@@ -3,7 +3,6 @@ package Server;
 import Processor.Processor;
 import PhraseSearcher.PhraseSearcher;
 import PhraseSearcher.PhraseSearcher.QuoteResult;
-import Processor.QueryDocument;
 
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
@@ -12,7 +11,6 @@ import org.bson.Document;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,10 +48,14 @@ public class Api {
                 System.out.println("Query: " + queryString);
                 if (queryString != null) {
                     QuoteResult res = PhraseSearcher.extractQuotedParts(queryString);
-                    processor.setSearchQuery(res.getRemainingString());
-                    processor.setQuotedParts(res.getQuotedParts());
-                    ArrayList<Document> relevantDocuments1 = processor.getRelevantDocuments();
-                    ArrayList<Document> relevantDocuments2 = processor.getPhraseDocuments();
+                    if(!res.getRemainingString().isEmpty()) {
+                        processor.setSearchQuery(res.getRemainingString());
+                        ArrayList<Document> relevantDocuments1 = processor.getRelevantDocuments();
+                    } else {
+                        processor.setQuotedParts(res.getQuotedParts());
+                        processor.setOperators(res.getOperators());
+                        ArrayList<Document> relevantDocuments2 = processor.getPhraseDocuments();
+                    }
                 }
 
                 // For now, echo the query back as a response

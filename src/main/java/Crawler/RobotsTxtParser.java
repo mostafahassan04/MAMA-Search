@@ -1,15 +1,13 @@
 package Crawler;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
-public class RobotsTxtParser {
+public class RobotsTxtParser implements Serializable {
     private final String UserAgent = "MAMA_Search";
     // Cache to store robots.txt rules for each base URL to avoid redundant fetching
     private final Map<String, List<List<String>>> robotsCache = new ConcurrentHashMap<>();
@@ -182,6 +180,23 @@ public class RobotsTxtParser {
         regex = "^" + regex;
 
         return path.matches(regex);
+    }
+
+    public void serialize (String filePath) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+            oos.writeObject(this);
+        } catch (IOException e) {
+            System.err.println("Error serializing RobotsTxtParser: " + e.getMessage());
+        }
+    }
+
+    public static RobotsTxtParser deserialize(String filePath) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+            return (RobotsTxtParser) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Error deserializing RobotsTxtParser: " + e.getMessage());
+            return null;
+        }
     }
 
 }

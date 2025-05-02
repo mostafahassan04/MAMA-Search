@@ -10,7 +10,7 @@ public class ParsedWord {
 
     public ParsedWord(String word, String tag, int position) {
         this.word = Objects.requireNonNull(word, "Word cannot be null");
-        this.tag = Objects.requireNonNull(tag, "Tag cannot be null");
+        this.tag = tag;
         this.position = position;
     }
 

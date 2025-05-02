@@ -1,7 +1,8 @@
 package Server;
 
 import Processor.Processor;
-import Processor.QueryDocument;
+import PhraseSearcher.PhraseSearcher;
+import PhraseSearcher.PhraseSearcher.QuoteResult;
 
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
@@ -10,7 +11,6 @@ import org.bson.Document;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,23 +31,31 @@ public class Api {
     }
 
     static class SearchHandler implements HttpHandler {
+        Processor processor;
+        SearchHandler() {
+            try {
+                processor = new Processor();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             String method = exchange.getRequestMethod();
 
             if ("GET".equals(method)) {
-                // Extract query from URL query parameter (e.g., /api/search?query=best+running+shoes)
-                String queryString = exchange.getRequestURI().getQuery(); // e.g., "query=best+running+shoes"
-
+                String queryString = exchange.getRequestURI().getQuery();
+                System.out.println("Query: " + queryString);
                 if (queryString != null) {
-                    Processor processor = new Processor(queryString);
-                    String[] result = processor.tokenizeAndStem();
-                    System.out.println("Final stemmed tokens:");
-                    for (String token : result) {
-                        System.out.println(token);
+                    QuoteResult res = PhraseSearcher.extractQuotedParts(queryString);
+                    if(!res.getRemainingString().isEmpty()) {
+                        processor.setSearchQuery(res.getRemainingString());
+                        ArrayList<Document> relevantDocuments1 = processor.getRelevantDocuments();
+                    } else {
+                        processor.setQuotedParts(res.getQuotedParts());
+                        processor.setOperators(res.getOperators());
+                        ArrayList<Document> relevantDocuments2 = processor.getPhraseDocuments();
                     }
-                    ArrayList<Document> relevantDocuments = processor.getRelevantDocuments(result);
-
                 }
 
                 // For now, echo the query back as a response

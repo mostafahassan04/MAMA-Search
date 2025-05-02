@@ -22,8 +22,11 @@ public class CrawlerThread implements Runnable {
     private final MongoDBConnection mongoDBConnection;
     private final int crawlDelay; // Delay in milliseconds
     private final String userAgent;
-    private static final AtomicInteger pageCount = new AtomicInteger(0);
+    private static AtomicInteger pageCount = new AtomicInteger(0);
+    private static AtomicInteger id = new AtomicInteger(-1);
     public static final int maxPages = 200;
+    private static final int saving_frequency = 10; // Save every 10 pages
+    public final String statesDir;
 
     CrawlerThread(VisitedSet vs, RobotsTxtParser robotsTxtParser, URLFrontier frontier, MongoDBConnection mongoDBConnection, int crawlDelay) {
         this.visitedSet = vs;
@@ -32,6 +35,7 @@ public class CrawlerThread implements Runnable {
         this.crawlDelay = crawlDelay;
         userAgent = "MAMA_Search";
         this.mongoDBConnection = mongoDBConnection;
+        this.statesDir = System.getProperty("user.dir") + "/States/";
     }
 
     private void processUrl(String url) {
@@ -48,7 +52,7 @@ public class CrawlerThread implements Runnable {
 
         // Normalize URL
         String normalizedUrl = URLNormalizer.normalize(url);
-        if (normalizedUrl == null || visitedSet.containsVisitedUrl(normalizedUrl)) {
+        if (normalizedUrl == null || visitedSet.checkAndAddVisitedUrl(normalizedUrl)) {
             pageCount.decrementAndGet();
             return;
         }
@@ -60,37 +64,36 @@ public class CrawlerThread implements Runnable {
         }
 
         Document doc = getDocument(normalizedUrl);
-        if (doc == null) {
+        if (doc == null || visitedSet.checkAndAddVisitedPage(doc)) {
             pageCount.decrementAndGet();
             return;
         }
 
-        // Check if the page has already been visited
-        if (visitedSet.containsVisitedPage(doc)) {
-            pageCount.decrementAndGet();
-            return;
-        }
+        int currentId = id.incrementAndGet();
 
-        // Mark the page as visited
-        visitedSet.addVisitedUrl(normalizedUrl);
-        visitedSet.addVisitedPage(doc);
+        // Map the URL to an ID
+        visitedSet.mapUrlToId(normalizedUrl, currentId);
 
         // Add the document to the database
-        mongoDBConnection.insertCrawledPage(normalizedUrl, doc.title(), doc.html());
+        mongoDBConnection.insertCrawledPage(currentId, normalizedUrl, doc.title(), doc.html());
         // Extract and add new URLs to the frontier
         ArrayList<String> urls = extractUrls(doc);
         urls = urls.stream()
                 .map(URLNormalizer::normalize)
                 .filter(Objects::nonNull)
+                .distinct()
                 .collect(Collectors.toCollection(ArrayList::new));
 
         visitedSet.addUrlExtractedUrls(normalizedUrl, urls);
 
         for (String extractedUrl : urls) {
-            if (extractedUrl != null && !visitedSet.containsVisitedUrl(extractedUrl)) {
+            if (extractedUrl != null && !visitedSet.checkVisitedUrl(extractedUrl)) {
                 frontier.addURL(extractedUrl);
             }
         }
+
+        // Save the state of the crawler
+        saveStates(currentId);
     }
 
     private ArrayList<String> extractUrls(Document doc) {
@@ -106,7 +109,7 @@ public class CrawlerThread implements Runnable {
         try {
             // Increase timeout values (in milliseconds)
             return Jsoup.connect(url)
-                    .timeout(10000)          // Connect timeout
+                    .timeout(5000)          // Connect timeout
                     .maxBodySize(1024 * 1024) // Max body size (1MB)
                     .followRedirects(true)
                     .userAgent(userAgent)
@@ -148,6 +151,18 @@ public class CrawlerThread implements Runnable {
                 Thread.currentThread().interrupt();
                 break; // Exit if the thread is interrupted
             }
+        }
+    }
+
+    public static void setPageCount(int count) {
+        pageCount.set(count);
+    }
+
+    private void saveStates (int id) {
+        if (id % saving_frequency == 0) {
+            visitedSet.serialize(statesDir + "visited_set.ser");
+            frontier.serialize(statesDir + "frontier.ser");
+            robotsTxtParser.serialize(statesDir + "robots_cache.ser");
         }
     }
 

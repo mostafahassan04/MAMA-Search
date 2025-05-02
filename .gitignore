@@ -1,4 +1,5 @@
-
+.idea
+src/main/resources/PlainText/*.txt
 target/
 log/
 !.mvn/wrapper/maven-wrapper.jar
@@ -50,5 +51,7 @@ build/
 Thumbs.db
 
 ./src/main/resources/crawler-output.json
+#/src/test/resources/PlainText/*.txt
+#!/src/test/resources/PlainText/
 
 

@@ -67,6 +67,11 @@ public class IndexerMongoDBConnection {
         }
         return documents;
     }
+
+    public void deleteAllInvertedIndex() {
+        invertedIndexCollection.deleteMany(new Document());
+        System.out.println("Cleared all inverted index data from database");
+    }
 //
 //    public void close() {
 //        if (mongoClient != null) {

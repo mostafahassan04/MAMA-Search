@@ -1,65 +1,123 @@
 package Crawler;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Scanner;
 
 public class main {
-    // Configuration parameters
-    private static final int NUM_THREADS = 32;
-    private static final int CRAWL_DELAY = 200; // milliseconds
-    private static final int MONITOR_INTERVAL = 5000; // milliseconds
-    private static final int MAX_RUNTIME = 3600000; // 1 hour in milliseconds
+    private static final int CRAWL_DELAY = 100; // milliseconds
 
     public static void main(String[] args) {
+        // Ask for number of threads
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Welcome to the Crawler!");
+        System.out.println("Do you want to load the previous state? (yes/no)");
+        String loadState = scanner.nextLine().trim().toLowerCase();
+        if (loadState.equals("yes")) {
+            System.out.println("Loading previous state...");
+        } else if (loadState.equals("no")) {
+            System.out.println("Starting a new crawl...");
+        } else {
+            System.out.println("Invalid input. Starting a new crawl...");
+        }
+        System.out.print("Enter the number of threads: ");
+        int numThreads = scanner.nextInt();
+        scanner.close();
+
         // Initialize components
         MongoDBConnection mongoDBConnection = new MongoDBConnection();
-        VisitedSet visitedSet = new VisitedSet(mongoDBConnection); // Fixed constructor
-        RobotsTxtParser robotsParser = new RobotsTxtParser();
-        URLFrontier frontier = new URLFrontier(visitedSet);
+        VisitedSet visitedSet = null;
+        RobotsTxtParser robotsParser = null;
+        URLFrontier frontier = null;
 
-        try {
-            // Add seed URLs
-            addSeedUrls(frontier);
+        String currentDir = System.getProperty("user.dir");
+        String statesDir = currentDir + "/States/";
+        // Create states directory if it doesn't exist
+        File statesDirFile = new File(statesDir);
+        if (!statesDirFile.exists()) {
+            statesDirFile.mkdirs();
+        }
 
-            // Create and start crawler threads
-            List<Thread> threads = new ArrayList<>();
-            for (int i = 0; i < NUM_THREADS; i++) {
-                CrawlerThread crawler = new CrawlerThread(visitedSet, robotsParser, frontier, mongoDBConnection, CRAWL_DELAY);
-                Thread thread = new Thread(crawler, "Crawler-" + i);
-                threads.add(thread);
-                thread.start();
-            }
+        // Try to initialize from states directory
+        boolean loadedFromStates = false;
+        if (loadState.equals("yes"))
+        {
+            File visitedSetFile = new File(statesDir + "visited_set.ser");
+            File frontierFile = new File(statesDir + "frontier.ser");
+            File robotsCacheFile = new File(statesDir + "robots_cache.ser");
 
-            // Monitor crawler progress
-            monitorCrawler(visitedSet, frontier, threads);
+            if (visitedSetFile.exists() && frontierFile.exists() && robotsCacheFile.exists()) {
+                // Try to load the states
+                visitedSet = VisitedSet.deserialize(statesDir + "visited_set.ser", mongoDBConnection);
+                robotsParser = RobotsTxtParser.deserialize(statesDir + "robots_cache.ser");
 
-            // Wait for all threads to complete
-            for (Thread thread : threads) {
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {
-                    System.err.println("Interrupted while waiting for threads to finish");
+                if (visitedSet != null && robotsParser != null) {
+                    frontier = URLFrontier.deserialize(statesDir + "frontier.ser", visitedSet);
+                    if (frontier != null) {
+                        loadedFromStates = true;
+                        System.out.println("Loaded previous crawler state from files.");
+                    }
                 }
             }
-
-            System.out.println("Crawl completed. Total pages crawled: " + visitedSet.getVisitedPagesCount());
-            System.out.println("Pages remaining in frontier: " + frontier.size());
-
-            // Upload URL graph data to MongoDB
-            System.out.println("Uploading URL graph data to MongoDB...");
-            visitedSet.filterAndUploadUrlExtractedUrls();
-            System.out.println("URL graph data upload completed.");
-        } finally {
-            // Always close the MongoDB connection when done
-//            mongoDBConnection.close();
-            System.out.println("MongoDB connection closed");
         }
+
+        // If not loaded from states, initialize with default values
+        if (!loadedFromStates) {
+            visitedSet = new VisitedSet(mongoDBConnection);
+            robotsParser = new RobotsTxtParser();
+            frontier = new URLFrontier(visitedSet);
+            addSeedUrls(frontier);
+            mongoDBConnection.deleteAllCrawledPages();
+            mongoDBConnection.deleteAllUrlGraph();
+            System.out.println("Created new crawler with seed URLs.");
+        }
+
+        int crawledPagesCount = visitedSet.getVisitedPagesCount();
+
+        CrawlerThread.setPageCount(crawledPagesCount);
+
+        // Print URL frontier size
+        System.out.println("URL Frontier size: " + frontier.size());
+
+        // Start crawling
+        System.out.println("Starting crawler with " + numThreads + " threads...");
+
+        // Create and start crawler threads
+        List<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < numThreads; i++) {
+            CrawlerThread crawler = new CrawlerThread(visitedSet, robotsParser, frontier, mongoDBConnection, CRAWL_DELAY);
+            Thread thread = new Thread(crawler, "Crawler-" + i);
+            threads.add(thread);
+            thread.start();
+        }
+
+        // Wait for all threads to complete
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                System.err.println("Interrupted while waiting for threads to finish");
+            }
+        }
+
+        // Save states
+        System.out.println("Saving crawler states...");
+        visitedSet.serialize(statesDir + "visited_set.ser");
+        frontier.serialize(statesDir + "frontier.ser");
+        robotsParser.serialize(statesDir + "robots_cache.ser");
+
+        // Print final count
+        System.out.println("Crawling complete. Number of crawled pages: " + visitedSet.getVisitedPagesCount());
+
+        // Upload URL graph data to MongoDB
+        System.out.println("Uploading URL graph data to MongoDB...");
+        visitedSet.filterAndUploadUrlExtractedUrls();
+        System.out.println("URL graph data upload completed.");
     }
 
     private static void addSeedUrls(URLFrontier frontier) {
         String[] seeds = {
-
                 // News sites
                 "https://www.bbc.com",
                 "https://www.cnn.com",
@@ -72,7 +130,6 @@ public class main {
 
                 // Tech sites
                 "https://techcrunch.com",
-                "https://www.wired.com",
                 "https://dev.to",
 
                 // Educational sites
@@ -84,101 +141,6 @@ public class main {
             String normalizedUrl = URLNormalizer.normalize(url);
             if (normalizedUrl != null) {
                 frontier.addURL(normalizedUrl);
-                System.out.println("Added seed URL: " + normalizedUrl);
-            } else {
-                System.out.println("Failed to normalize seed URL: " + url);
-            }
-        }
-    }
-
-    private static void monitorCrawler(VisitedSet visitedSet, URLFrontier frontier, List<Thread> threads) {
-        Thread monitorThread = new Thread(() -> {
-            long startTime = System.currentTimeMillis();
-            int prevPageCount = 0;
-            int stallCount = 0;
-
-            while (true) {
-                try {
-                    Thread.sleep(MONITOR_INTERVAL);
-                } catch (InterruptedException e) {
-                    break;
-                }
-
-                int currentPageCount = visitedSet.getVisitedPagesCount();
-                int crawlRate = (currentPageCount - prevPageCount) * 1000 / MONITOR_INTERVAL;
-                prevPageCount = currentPageCount;
-
-                System.out.println("\n--- Crawler Status ---");
-                System.out.println("Pages crawled: " + currentPageCount);
-                System.out.println("Queue size: " + frontier.size());
-                System.out.println("Crawl rate: " + crawlRate + " pages/sec");
-
-                // Check for termination conditions
-                if (areAllThreadsDone(threads)) {
-                    System.out.println("All threads have completed their work.");
-                    break;
-                }
-
-                if (currentPageCount >= CrawlerThread.maxPages) {
-                    System.out.println("Reached maximum page count. Stopping crawler.");
-                    stopAllThreads(threads);
-                    break;
-                }
-
-                if (System.currentTimeMillis() - startTime > MAX_RUNTIME) {
-                    System.out.println("Reached maximum runtime. Stopping crawler.");
-                    stopAllThreads(threads);
-                    break;
-                }
-
-                // Detect stalled crawler
-                if (crawlRate == 0 && !frontier.isEmpty()) {
-                    stallCount++;
-                    if (stallCount >= 3) { // Stalled for 3 consecutive intervals
-                        System.out.println("Crawler appears stalled. Thread states:");
-                        for (Thread thread : threads) {
-                            System.out.println(thread.getName() + ": " + thread.getState());
-                        }
-
-                        if (areAllThreadsWaiting(threads)) {
-                            System.out.println("All threads waiting but frontier not empty. Possible deadlock.");
-                            stopAllThreads(threads);
-                            break;
-                        }
-                    }
-                } else {
-                    stallCount = 0;
-                }
-            }
-        }, "Monitor");
-
-        monitorThread.setDaemon(true);
-        monitorThread.start();
-    }
-
-    private static boolean areAllThreadsDone(List<Thread> threads) {
-        for (Thread thread : threads) {
-            if (thread.isAlive()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean areAllThreadsWaiting(List<Thread> threads) {
-        for (Thread thread : threads) {
-            if (thread.isAlive() && thread.getState() != Thread.State.WAITING &&
-                    thread.getState() != Thread.State.TIMED_WAITING) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static void stopAllThreads(List<Thread> threads) {
-        for (Thread thread : threads) {
-            if (thread.isAlive()) {
-                thread.interrupt();
             }
         }
     }

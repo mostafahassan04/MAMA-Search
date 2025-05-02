@@ -1,5 +1,9 @@
 package Crawler;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.Normalizer;
 import java.util.*;
 
@@ -47,9 +51,10 @@ public class URLFrontier {
     }
 
     // Saves the current state of the queue (to be implemented)
-    public void saveState() {
-        try {
-            // TODO: Implement save functionality
+    public void serialize(String filePath) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+            oos.writeObject(queue);
+            oos.flush();
         } catch (Exception e) {
             System.err.println("Error while saving state: " + e.getMessage());
             e.printStackTrace();
@@ -57,12 +62,17 @@ public class URLFrontier {
     }
 
     // Loads the saved state of the queue (to be implemented)
-    public void loadState() {
-        try {
-            // TODO: Implement load functionality
+    public static URLFrontier deserialize(String filePath, VisitedSet vs) {
+       try (FileInputStream fis = new FileInputStream(filePath);
+            ObjectInputStream ois = new ObjectInputStream(fis)) {
+            Queue<String> queue = (Queue<String>) ois.readObject();
+            URLFrontier frontier = new URLFrontier(vs);
+            frontier.queue.addAll(queue);
+            return frontier;
         } catch (Exception e) {
             System.err.println("Error while loading state: " + e.getMessage());
             e.printStackTrace();
         }
+        return null;
     }
 }

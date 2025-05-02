@@ -1,6 +1,8 @@
 package com.mamasearch.Indexer;
 
 import DBClient.MongoDBClient;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
@@ -11,41 +13,44 @@ import java.util.Map;
 
 public class IndexerMongoDBConnection {
     private MongoDatabase database;
-    private MongoCollection<Document> collection1;
-    private MongoCollection<Document> collection2;
-    private static final String COLLECTION1_NAME = "crawled_data";
-    private static final String COLLECTION2_NAME = "inverted_index";
+    private static final String DB_NAME = "MAMA_Search";
+    private MongoCollection<Document> crawledDataCollection;
+    private MongoCollection<Document> invertedIndexCollection;
+    private static final String crawledDataCollectionName = "crawled_data";
+    private static final String invertedIndexCollectionName = "inverted_index";
 
 
     public IndexerMongoDBConnection() {
-        this.database = MongoDBClient.getDatabase();
-//        System.out.println("Connected to database" + this.database);
-        this.collection1 = database.getCollection(COLLECTION1_NAME);
-        this.collection2 = database.getCollection(COLLECTION2_NAME);
+        String uri = "mongodb://localhost:27017/";
+        MongoClient mongoClient = MongoClients.create(uri);
+        database = mongoClient.getDatabase(DB_NAME);
+        System.out.println("Connected to database " + this.database);
+        this.crawledDataCollection = database.getCollection(crawledDataCollectionName);
+        this.invertedIndexCollection = database.getCollection(invertedIndexCollectionName);
     }
 
-    public void insertInvertedIndex(Map<String, Map<String, WordData>> invertedIndex) {
+    public void insertInvertedIndex(Map<String, Map<Integer, WordData>> invertedIndex) {
         System.out.println("Total number of words: " + invertedIndex.size());
         for (String word : invertedIndex.keySet()) {
-            Map<String, WordData> docs = invertedIndex.get(word);
+            Map<Integer, WordData> docs = invertedIndex.get(word);
 
-            List<Document> urlsList = new ArrayList<>();
+            List<Document> IDsList = new ArrayList<>();
 
-            for (Map.Entry<String, WordData> entry : docs.entrySet()) {
-                String url = entry.getKey();
+            for (Map.Entry<Integer, WordData> entry : docs.entrySet()) {
+                Integer ID = entry.getKey();
                 WordData wordData = entry.getValue();
 
-                Document urlDoc = new Document("url", url)
+                Document DocID = new Document("id", ID)
                         .append("positions", wordData.getPositions())
                         .append("score", wordData.getScore());
 
-                urlsList.add(urlDoc);
+                IDsList.add(DocID);
             }
 
             Document document = new Document("word", word)
-                    .append("urls", urlsList);
+                    .append("ids", IDsList);
 
-            collection2.insertOne(document);
+            invertedIndexCollection.insertOne(document);
         }
     }
 
@@ -53,11 +58,11 @@ public class IndexerMongoDBConnection {
 
     public List<DocumentData> getDocuments() {
         List<DocumentData> documents = new ArrayList<>();
-        for (Document doc : collection1.find()) {
-            String url = doc.getString("url");
+        for (Document doc : crawledDataCollection.find()) {
+            Integer ID = doc.getInteger("id");
             String content = doc.getString("content");
-            if (url != null && content != null) {
-                documents.add(new DocumentData(url, content));
+            if (content != null) {
+                documents.add(new DocumentData(ID, content));
             }
         }
         return documents;

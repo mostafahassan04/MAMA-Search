@@ -6,9 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="385c40be-58ed-468d-b8bc-26b8470f9b1d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PhraseSearcher/PhraseSearcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PhraseSearcher/PhraseSearcher.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Processor/Processor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Processor/Processor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Server/Api.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server/Api.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/DocumentData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/DocumentData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Indexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/Indexer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IndexerMongoDBConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/IndexerMongoDBConnection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TFIDFScorer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mamasearch/Indexer/TFIDFScorer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +62,7 @@
     &quot;Application.mainfortest.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Indexer&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/Mostafa/MAMA_Search/MAMA-Search/pom.xml&quot;,
@@ -76,7 +77,7 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected="Application.Api">
+  <component name="RunManager" selected="Application.TestingMain">
     <configuration name="Api" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Server.Api" />
       <module name="MAMA-Search" />
@@ -131,8 +132,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Api" />
         <item itemvalue="Application.TestingMain" />
+        <item itemvalue="Application.Api" />
         <item itemvalue="Application.main" />
         <item itemvalue="Application.mainfortest" />
       </list>
@@ -162,10 +163,14 @@
       <workItem from="1746017594590" duration="644000" />
       <workItem from="1746019775327" duration="2000" />
       <workItem from="1746048616218" duration="6082000" />
+      <workItem from="1746196153344" duration="1542000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="LAST_COMMIT_MESSAGE" value="" />
   </component>
 </project>

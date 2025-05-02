@@ -6,7 +6,7 @@ import java.util.concurrent.*;
 import java.util.ArrayList;
 
 public class Indexer {
-    private final Map<String, Map<String, WordData>> invertedIndex = new HashMap<>();
+    private final Map<String, Map<Integer, WordData>> invertedIndex = new HashMap<>();
 
 
 
@@ -18,7 +18,7 @@ public class Indexer {
                 List<ParsedWord> filteredWords = document.getFilteredWords();
                 for (ParsedWord pw : filteredWords) {
                     synchronized (this) {
-                        addWord(pw.getWord(), document.getUrl(), pw.getPosition());
+                        addWord(pw.getWord(), document.getID(), pw.getPosition());
                     }
                 }
             });
@@ -31,12 +31,12 @@ public class Indexer {
             e.printStackTrace();
         }
 
-        Map<String, Map<String, Double>> tfidfScores = TFIDFScorer.calculateTFIDF(documents);
+        Map<String, Map<Integer, Double>> tfidfScores = TFIDFScorer.calculateTFIDF(documents);
         for (String word : tfidfScores.keySet()) {
-            Map<String, Double> docs = tfidfScores.get(word);
-            for (String url : docs.keySet()) {
+            Map<Integer, Double> docs = tfidfScores.get(word);
+            for (Integer ID : docs.keySet()) {
                 synchronized (this) {
-                    addScore(word, url, docs.get(url));
+                    addScore(word, ID, docs.get(ID));
                 }
             }
         }
@@ -61,30 +61,30 @@ public class Indexer {
 //    }
 
 
-    public Map<String, Map<String, WordData>> getInvertedIndex() {
+    public Map<String, Map<Integer, WordData>> getInvertedIndex() {
         return invertedIndex;
     }
 
-    public void addWord(String word, String url, int position) {
+    public void addWord(String word, Integer ID, int position) {
         invertedIndex
                 .computeIfAbsent(word, k -> new HashMap<>())
-                .computeIfAbsent(url, k -> new WordData())
+                .computeIfAbsent(ID, k -> new WordData())
                 .addPosition(position);
     }
 
-    public void addScore(String word, String url, double score) {
-        if (invertedIndex.containsKey(word) && invertedIndex.get(word).containsKey(url)) {
-            invertedIndex.get(word).get(url).setScore(score);
+    public void addScore(String word, Integer ID, double score) {
+        if (invertedIndex.containsKey(word) && invertedIndex.get(word).containsKey(ID)) {
+            invertedIndex.get(word).get(ID).setScore(score);
         }
     }
 
     public void printIndex() {
         for (String word : invertedIndex.keySet()) {
             System.out.println("Word: " + word);
-            Map<String, WordData> docs = invertedIndex.get(word);
-            for (String url : docs.keySet()) {
-                WordData data = docs.get(url);
-                System.out.println("  URL: " + url);
+            Map<Integer, WordData> docs = invertedIndex.get(word);
+            for (Integer ID : docs.keySet()) {
+                WordData data = docs.get(ID);
+                System.out.println("  ID: " + ID);
                 System.out.println("    Positions: " + data.getPositions());
                 System.out.println("    TF-IDF Score: " + data.getScore());
             }

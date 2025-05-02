@@ -16,19 +16,19 @@ public class TFIDFScorer {
 //        return tfidf;
 //    }
 
-    public static Map<String, Map<String, Double>> calculateTFIDF(List<DocumentData> documents) {
-        Map<String, Map<String, Double>> tfidfScores = new HashMap<>();
+    public static Map<String, Map<Integer, Double>> calculateTFIDF(List<DocumentData> documents) {
+        Map<String, Map<Integer, Double>> tfidfScores = new HashMap<>();
         Map<String, Double> idf = IDFCalculator.calculateIDF(documents);
 
         for (DocumentData document : documents) {
             Map<String, Double> tf = document.getTF();
-            String url = document.getUrl();
+            Integer ID = document.getID();
 
             for (String word : tf.keySet()) {
                 double tfScore = tf.getOrDefault(word, 0.0);
                 double idfScore = idf.getOrDefault(word, 0.0);  // if IDF missing, assume 0
                 tfidfScores.computeIfAbsent(word, k -> new HashMap<>())
-                        .put(url, tfScore* idfScore);
+                        .put(ID, tfScore* idfScore);
             }
         }
 

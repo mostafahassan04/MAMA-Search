@@ -8,7 +8,7 @@ import org.jsoup.select.Elements;
 import java.util.*;
 
 public class DocumentParser {
-    public static List<ParsedWord> ParesingandFilteringDocuments(String htmlContent) {
+    public static List<ParsedWord> ParesingandFilteringDocuments(Integer ID,String htmlContent) {
         List<ParsedWord> parsedWords = new ArrayList<>();
         Set<String> processedText = new HashSet<>(); // To track processed text
         int position = 0;

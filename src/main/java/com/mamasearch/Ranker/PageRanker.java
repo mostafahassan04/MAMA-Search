@@ -1,11 +1,5 @@
 package com.mamasearch.Ranker;
 
-import DBClient.MongoDBClient;
-
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,50 +7,39 @@ import java.util.Map;
 
 public class PageRanker {
 
-    private final Map<String, Page> pages = new HashMap<>();
-    private final MongoCollection<Document> collection;
+    private final Map<Integer, Page> pages = new HashMap<>();
+
+    public void rank(Map<Integer, ArrayList<Integer>> pagesGraph) {
 
 
-    PageRanker(){
-        MongoDatabase database = MongoDBClient.getDatabase();
-        String COLLECTION_NAME = "url_graph";
-        this.collection = database.getCollection(COLLECTION_NAME);
-    }
-
-
-    public void rank(){
-
-        Map<String, ArrayList<String>> pagesGraph = new HashMap<>();
-        FindIterable<Document> documents = collection.find();
-        for(Document doc :documents){
-            String url = doc.getString("url");
-            List<String >links = doc.getList("extractedUrls",String.class);
-            pagesGraph.put(url,new ArrayList<>(links));
-        }
         Map<Page, List<Page>> inboundLinks = new HashMap<>();
         Map<Page, Integer> outboundCount = new HashMap<>();
 
-        for (Map.Entry<String, ArrayList<String>> entry : pagesGraph.entrySet()) {
+        for (Map.Entry<Integer, ArrayList<Integer>> entry : pagesGraph.entrySet()) {
             pages.computeIfAbsent(entry.getKey(), Page::new);
-            for (String url : entry.getValue()) {
-                pages.computeIfAbsent(url, Page::new);
+            for (Integer id : entry.getValue()) {
+                pages.computeIfAbsent(id, Page::new);
             }
         }
         //construct the graph
-        for (Map.Entry<String, ArrayList<String>> entry : pagesGraph.entrySet()) {
+        for (Map.Entry<Integer, ArrayList<Integer>> entry : pagesGraph.entrySet()) {
             Page pageLinkFrom = pages.get(entry.getKey());
             outboundCount.put(pageLinkFrom, entry.getValue().size());
+//            System.out.println("page: "+pageLinkFrom.getUrl()+" out: "+outboundCount.get(pageLinkFrom));
 
-            for (String url : entry.getValue()) {
-                Page pageLinkTo = pages.get(url);
+            for (Integer id : entry.getValue()) {
+                Page pageLinkTo = pages.get(id);
                 inboundLinks.computeIfAbsent(pageLinkTo, _ -> new ArrayList<>()).add(pageLinkFrom);
             }
         }
+
 
         Map<Page, Double> currentRanks = new HashMap<>();
         Map<Page, Double> nextRanks = new HashMap<>();
         double initialRank = 1.0 / pages.size();
         for (Page page : pages.values()) {
+            if (outboundCount.get(page) == null)
+                outboundCount.put(page, 0);
             currentRanks.put(page, initialRank);
         }
         double d = 0.85;
@@ -67,19 +50,19 @@ public class PageRanker {
 
             double sumDanglingRank = 0.0;
             for (Page p : pages.values()) {
-                if(outboundCount.get(p)==0){
-                    sumDanglingRank+=currentRanks.get(p);
+                if (outboundCount.get(p) == 0) {
+                    sumDanglingRank += currentRanks.get(p);
                 }
             }
 
-            for (Map.Entry<String, Page> entry : pages.entrySet()) {
+            for (Map.Entry<Integer, Page> entry : pages.entrySet()) {
                 Page page = entry.getValue();
                 double sumFromLinks = 0.0;
                 List<Page> inLinks = inboundLinks.get(page);
                 if (inLinks != null) {
                     for (Page linker : inLinks) {
                         int outLinks = outboundCount.get(linker);
-                        if(outLinks>0)
+                        if (outLinks > 0)
                             sumFromLinks += currentRanks.get(linker) / outboundCount.get(linker);
                     }
                 }
@@ -100,6 +83,21 @@ public class PageRanker {
         }
         for (Map.Entry<Page, Double> finalEntry : currentRanks.entrySet()) {
             finalEntry.getKey().setPageRank(finalEntry.getValue());
+        }
+    }
+
+    public void print(Map<Integer, ArrayList<Integer>> pagesGraph) {
+//        for(Map.Entry<String, Page> entry : pages.entrySet()){
+//            System.out.println("url: "+ entry.getKey()+" Score: "+entry.getValue().getPageRank());
+//        }
+
+        for (Map.Entry<Integer, ArrayList<Integer>> entry : pagesGraph.entrySet()) {
+            System.out.print(pages.get(entry.getKey()).getPageRank() + ": [");
+
+            for (Integer id : entry.getValue()) {
+                System.out.print(pages.get(id).getPageRank() + ", ");
+            }
+            System.out.println("]");
         }
     }
 

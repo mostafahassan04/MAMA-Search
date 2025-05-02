@@ -1,16 +1,17 @@
 package com.mamasearch.Ranker;
 
 public class Page {
-    private final String url;
+    private final Integer id;
     private Double pageRank;
 
-    Page(String url) {
-        this.url = url;
+    Page(Integer id) {
+        this.id = id;
         this.pageRank = 0.0;
     }
 
-    public String getUrl() {
-        return url;
+
+    public Integer getId() {
+        return id;
     }
 
     public Double getPageRank() {

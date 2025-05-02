@@ -47,7 +47,7 @@ public class PageRanker {
         double currentMaxErrorThreshold = 1.0;
         int MAX_ITERATIONS = 50;
         for (int i = 0; i < MAX_ITERATIONS; i++) {
-
+            currentMaxErrorThreshold = 0.0;
             double sumDanglingRank = 0.0;
             for (Page p : pages.values()) {
                 if (outboundCount.get(p) == 0) {

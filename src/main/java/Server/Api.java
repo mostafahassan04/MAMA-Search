@@ -4,6 +4,7 @@ import Processor.Processor;
 import PhraseSearcher.PhraseSearcher;
 import PhraseSearcher.PhraseSearcher.QuoteResult;
 
+import com.mamasearch.Utils.ProcessorData;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
@@ -50,11 +51,11 @@ public class Api {
                     QuoteResult res = PhraseSearcher.extractQuotedParts(queryString);
                     if(!res.getRemainingString().isEmpty()) {
                         processor.setSearchQuery(res.getRemainingString());
-                        ArrayList<Document> relevantDocuments1 = processor.getRelevantDocuments();
+                        ProcessorData pdata1 = processor.getRelevantDocuments();
                     } else {
                         processor.setQuotedParts(res.getQuotedParts());
                         processor.setOperators(res.getOperators());
-                        ArrayList<Document> relevantDocuments2 = processor.getPhraseDocuments();
+                        ProcessorData pdata2 = processor.getRelevantDocuments();
                     }
                 }
 

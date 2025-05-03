@@ -1,17 +1,18 @@
 package com.mamasearch.Ranker;
 
 public class ScoredDocument implements Comparable<ScoredDocument> {
-    private final Document document;
-    private Double score;
+    private final String url;
+    private final String title;
+    private final String snippet;
+    private final Double score;
 
-    ScoredDocument(Document document) {
-        this.document = document;
-        this.score = 0.0;
-    }
-
-    public void setScore(Double score) {
+    ScoredDocument(String url , String title,String snippet , Double score ) {
+        this.url = url;
+        this.title = title;
+        this.snippet = snippet;
         this.score = score;
     }
+
 
     public Double getScore() {
         return score;
@@ -22,7 +23,16 @@ public class ScoredDocument implements Comparable<ScoredDocument> {
         return Double.compare(other.score, this.score);
     }
 
-    public Document getDocument() {
-        return document;
+    public String getUrl() {
+        return url;
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getSnippet() {
+        return snippet;
+    }
+
 }

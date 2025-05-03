@@ -1,13 +1,11 @@
 package Processor;
 
 import DBClient.MongoDBClient;
-import com.mamasearch.Utils.ProcessorData;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import org.bson.Document;
-//import org.tartarus.snowball.ext.porterStemmer;
 import org.tartarus.snowball.ext.englishStemmer;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,8 +20,11 @@ public class Processor {
     private String searchQuery;
     private String [] quotedParts;
     private String [] operators;
+    public ArrayList<String> allTokens;
     private final MongoCollection<Document> collection1;
+    private final MongoCollection<Document> collection2;
     private static final String COLLECTION1_NAME = "inverted_index";
+    private static final String COLLECTION2_NAME = "search_queries";
 
     private static final Set<String> stopWords = new HashSet<>(Arrays.asList(
             "i", "me", "my", "myself", "we", "our", "ours", "ourselves",
@@ -56,8 +57,8 @@ public class Processor {
         }
         MongoDatabase database = MongoDBClient.getDatabase();
         this.collection1 = database.getCollection(COLLECTION1_NAME);
+        this.collection2 = database.getCollection(COLLECTION2_NAME);
 
-        // Pre-warm MongoDB connection with ping operation
         try {
             database.runCommand(new Document("ping", 1));
         } catch (Exception e) {
@@ -88,11 +89,28 @@ public class Processor {
         this.operators = operators;
     }
 
+    public List<String> getSuggestions() {
+        return Objects.requireNonNull(collection2.find().first()).getList("queries", String.class);
+    }
+
+    public void insertSearchQuery(String query) {
+        if(query.startsWith("query="))
+            query = query.substring(6);
+        Document filter = new Document();
+        Document update = new Document("$addToSet", new Document("queries", query));
+
+        collection2.updateOne(filter, update);
+    }
+
     private static boolean isStopWord(String word) {
         return stopWords.contains(word.toLowerCase());
     }
 
-    public String[] tokenizeAndStem(String input) {
+    public ArrayList<String> getAllTokens() {
+        return allTokens;
+    }
+
+    public ArrayList<String> tokenize(String input) {
         String[] tokens = tokenizer.tokenize(input);
         ArrayList<String> filteredTokens = new ArrayList<>();
         for (String token : tokens) {
@@ -101,56 +119,44 @@ public class Processor {
                 filteredTokens.add(token);
             }
         }
-        String[] stemmedTokens = new String[filteredTokens.size()];
-        for (int i = 0; i < filteredTokens.size(); i++) {
-            String token = filteredTokens.get(i);
+        allTokens.addAll(filteredTokens);
+        return filteredTokens;
+    }
+
+    public String[] stemAll(ArrayList<String> tokens) {
+        String[] stemmedTokens = new String[tokens.size()];
+        for (int i = 0; i < tokens.size(); i++) {
+            String token = tokens.get(i);
             stemmedTokens[i] = stem(token);
-//            System.out.println("After stemming: " + stemmedTokens[i]);
         }
         return stemmedTokens;
     }
 
-    public ProcessorData getRelevantDocuments() {
-        String[] words = tokenizeAndStem(searchQuery);
+    public ArrayList<Document> getRelevantDocuments() {
+        String[] words = stemAll(tokenize(searchQuery));
         ArrayList<Document> relevantDocuments = new ArrayList<>();
         for(String word : words) {
-            System.out.println("getting rel docs for word: " + word);
             Document query = new Document("word", word);
             Document doc = collection1.find(query).first();
-            System.out.println("got rel docs " + doc);
-            List<Document> occurrences = (List<Document>) doc.get("occurrences");
-            if (occurrences != null) {
+            if (doc != null) {
+                List<Document> occurrences = doc.containsKey("urls") ?
+                        doc.getList("urls", Document.class) :
+                        new ArrayList<>();
                 relevantDocuments.addAll(occurrences);
             }
-//            if (doc != null) {
-//                relevantDocuments.add(doc);
-//            }
-
-//            if (doc != null) {
-//                String url = doc.containsKey("url") ? doc.getString("url") : null;
-//                Double score = doc.containsKey("score") ? doc.getDouble("score") : null;
-//
-//                if (url != null && score != null) {
-//                    QueryDocument queryDoc = new QueryDocument(url, word, score);
-//                    relevantDocuments.add(queryDoc);
-//                } else {
-//                    System.out.println("Skipping document for word '" + word + "': missing or null fields (url: " + url + ", score: " + score + ")");
-//                }
-//            }
         }
-        return new ProcessorData(relevantDocuments,words);
+        return relevantDocuments;
     }
 
-    public ProcessorData getPhraseDocuments() {
+    public ArrayList<Document> getPhraseDocuments() {
         ArrayList<Document> phraseDocuments = new ArrayList<>();
         for (int i = 0; i < quotedParts.length; i++) {
-            String[] words = tokenizeAndStem(quotedParts[i]);
+            String[] words = stemAll(tokenize(quotedParts[i]));
             ArrayList<Document> quoteDocuments = new ArrayList<>();
             Map<String, List<Document>> mp = new HashMap<>();
             for (String word : words) {
                 Document query = new Document("word", word);
                 Document doc = collection1.find(query).first();
-//                System.out.println("got rel docs " + doc);
                 if (doc != null) {
                     List<Document> occurrences = doc.containsKey("urls") ?
                             doc.getList("urls", Document.class) :
@@ -164,20 +170,14 @@ public class Processor {
                     }
                 }
             }
-//            System.out.println("mp size: " + mp.size());
+
             for (String url : mp.keySet()) {
                 List<Document> occurrences = mp.get(url);
                 if (occurrences.size() == words.length) {
                     List<Integer> firstWordPos = occurrences.getFirst().getList("positions", Integer.class);
                     for (Integer pos : firstWordPos) {
                         if (checkPosition(occurrences, pos, words.length, 1)) {
-                            Double scr = 0.0;
-                            for (Document occurrence : occurrences) {
-                                scr += occurrence.getDouble("score");
-                            }
-                            scr /= occurrences.size();
-                            quoteDocuments.add(new Document("url", url).append("score", scr));
-//                            System.out.println("url: " + url);
+                            phraseDocuments.addAll(occurrences);
                             break;
                         }
                     }
@@ -185,12 +185,10 @@ public class Processor {
             }
             switch (operators[i]) {
                 case "AND" -> {
-                    // Get URLs from both lists
                     Set<String> phraseUrls = phraseDocuments.stream()
                             .map(doc -> doc.getString("url"))
                             .collect(Collectors.toSet());
 
-                    // Keep only quoteDocuments whose url is in phraseUrls
                     ArrayList<Document> intersection = new ArrayList<>();
                     for (Document quoteDoc : quoteDocuments) {
                         if (phraseUrls.contains(quoteDoc.getString("url"))) {
@@ -198,12 +196,10 @@ public class Processor {
                         }
                     }
 
-                    // Update phraseDocuments: clear and add intersection
                     phraseDocuments.clear();
                     phraseDocuments.addAll(intersection);
                 }
                 case "OR" -> {
-                    // Union: Add quoteDocuments to phraseDocuments, avoiding duplicates by url
                     Set<String> phraseUrls = phraseDocuments.stream()
                             .map(doc -> doc.getString("url"))
                             .collect(Collectors.toSet());
@@ -214,7 +210,6 @@ public class Processor {
                     }
                 }
                 case "NOT" -> {
-                    // Difference: Remove quoteDocuments' urls from phraseDocuments
                     Set<String> quoteUrls = quoteDocuments.stream()
                             .map(doc -> doc.getString("url"))
                             .collect(Collectors.toSet());
@@ -226,7 +221,7 @@ public class Processor {
         for(Document doc : phraseDocuments) {
             System.out.println("phrase doc: " + doc);
         }
-        return new ProcessorData(phraseDocuments,quotedParts); // for now to test needs to be updated with the right  values
+        return phraseDocuments;
     }
 
     private boolean checkPosition(List<Document> positions, Integer position, int length, int i) {

@@ -5,10 +5,17 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class DocumentParser {
-    public static List<ParsedWord> ParesingandFilteringDocuments(String htmlContent) {
+    public static List<ParsedWord> ParesingandFilteringDocuments(Integer ID,String htmlContent) {
         List<ParsedWord> parsedWords = new ArrayList<>();
         Set<String> processedText = new HashSet<>(); // To track processed text
         int position = 0;
@@ -36,6 +43,9 @@ public class DocumentParser {
 
         // Normal (rest of body, excluding already processed elements)
         Elements bodyElements = doc.body().select("*"); // Select all elements in body
+
+        savePlainTextToFile(ID, bodyElements); // Save plain text to file
+
         for (Element element : bodyElements) {
             // Skip h1, h2, h3, and script/style elements
             if (element.tagName().matches("h1|h2|h3|script|style")) {
@@ -72,4 +82,37 @@ public class DocumentParser {
         }
         return startPosition;
     }
+
+    private static void savePlainTextToFile(Integer ID, Elements bodyElements) {
+        StringBuilder plainTextBuilder = new StringBuilder();
+        for (Element element : bodyElements) {
+            if (element.tagName().matches("script|style")) continue;
+
+            String text = element.ownText().trim();
+            if (!text.isEmpty()) {
+                plainTextBuilder.append(text).append("\n");
+            }
+        }
+
+        String content = plainTextBuilder.toString();
+
+        try {
+            // Use reliable relative path from project root
+            Path directoryPath = Paths.get("src", "main", "resources", "PlainText");
+            Files.createDirectories(directoryPath);
+
+            Path filePath = directoryPath.resolve(ID + ".txt");
+
+            try (BufferedWriter writer = Files.newBufferedWriter(filePath)) {
+                writer.write(content);
+            }
+
+            // Debugging tip: Print full absolute path
+//            System.out.println("Saved file at: " + filePath.toAbsolutePath());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

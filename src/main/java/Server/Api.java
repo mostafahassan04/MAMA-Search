@@ -4,6 +4,10 @@ import Processor.Processor;
 import PhraseSearcher.PhraseSearcher;
 import PhraseSearcher.PhraseSearcher.QuoteResult;
 
+import com.mamasearch.Ranker.Ranker;
+import com.mamasearch.Ranker.ScoredDocument;
+import com.mamasearch.Utils.ProcessorData;
+
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
@@ -36,6 +40,14 @@ public class Api {
         SearchHandler(Processor processor) {
             this.processor = processor;
         }
+        private String escapeJson(String input) {
+            if (input == null) return "";
+            return input.replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\r", "\\r")
+                    .replace("\t", "\\t");
+        }
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -60,17 +72,22 @@ public class Api {
                         processor.setOperators(res.getOperators());
                         relevantDocuments = processor.getPhraseDocuments();
                     }
-                    ArrayList<String> allTokens = processor.getAllTokens();
-                    
-                    System.out.println("All tokens: " + allTokens);
-                    System.out.println("Relevant documents: " + relevantDocuments);
+
+                    String [] allTokens = processor.getAllTokens();
+                    System.out.println("Relevant documents: " + relevantDocuments.size());
+                    System.out.println("all tokens: " + allTokens.length);
+
+                    Ranker ranker = new Ranker();
+                    ProcessorData processorData = new ProcessorData(relevantDocuments, allTokens);
+                    System.out.println("ProcessorData: " + processorData.relevantDocuments.size());
+                    System.out.println("ProcessorData: " + processorData.words.length);
+                    // PROCESSOR_DATA IS FINE, THE NEXT HAVE PROBLEMS
+//                    List<ScoredDocument> sortedDocuments = ranker.rankDocument(processorData);
+//                    System.out.println("Ranked documents: \n" + sortedDocuments.size());
 
                     // Measure end time and calculate duration in milliseconds
                     long endTime = System.nanoTime();
                     double timeMs = (endTime - startTime) / 1_000_000.0;
-
-                    System.out.println("Found " + relevantDocuments);
-                    System.out.println("Found " + relevantDocuments.size());
 
                     // Convert relevantDocuments to JSON array
                     StringBuilder docsJson = new StringBuilder("[");
@@ -104,7 +121,14 @@ public class Api {
         SuggestHandler(Processor processor) {
             this.processor = processor;
         }
-
+        private String escapeJson(String input) {
+            if (input == null) return "";
+            return input.replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\r", "\\r")
+                    .replace("\t", "\\t");
+        }
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             // Handle OPTIONS preflight request
@@ -119,12 +143,14 @@ public class Api {
 
                 JSONObject jsonBody = new JSONObject(requestBody);
                 String query = jsonBody.optString("query", ""); // Use optString to avoid exceptions if "query" is missing
-                System.out.println("Parsed query: " + query);
-                List<String> suggestions = processor.getSuggestions();
-                // get docs
+                List<String> suggestions = processor.getSuggestions(query);
+                System.out.println("Suggestions: " + suggestions.size());
+
+                // Build JSON response for suggestions
                 StringBuilder responseBuilder = new StringBuilder("{\"suggestions\":[");
                 for (int i = 0; i < suggestions.size(); i++) {
-                    responseBuilder.append("\"").append(suggestions.get(i)).append("\"");
+                    responseBuilder.append("\"").append(escapeJson(suggestions.get(i))).append("\"");
+
                     if (i < suggestions.size() - 1) {
                         responseBuilder.append(",");
                     }
@@ -150,4 +176,5 @@ public class Api {
             os.write(responseBytes);
         }
     }
+
 }

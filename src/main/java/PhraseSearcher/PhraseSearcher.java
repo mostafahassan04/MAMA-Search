@@ -46,7 +46,6 @@ public class PhraseSearcher {
             int end = matcher.end();
 
             String between = input.substring(lastEnd, start).trim();
-            System.out.println("Between: " + between);
             if (between.toLowerCase().contains("or")) {
                 operators.add("OR");
             } else if (between.toLowerCase().contains("and")) {
@@ -64,9 +63,6 @@ public class PhraseSearcher {
         String[] quotedArray = quotedParts.toArray(new String[0]);
         String[] operatorsArray = operators.toArray(new String[0]);
         String remaining = quotedArray.length > 0 ? "" : input;
-        System.out.println("Remaining: " + remaining);
-        System.out.println("Quoted: " + quotedParts);
-        System.out.println("Operators: " + operators);
         return new QuoteResult(quotedArray, remaining, operatorsArray);
     }
 }

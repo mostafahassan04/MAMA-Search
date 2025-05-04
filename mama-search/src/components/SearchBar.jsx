@@ -23,6 +23,7 @@ const SearchBar = ({ onSearch }) => {
       })
       .then((data) => {
         setSuggestions(data.suggestions || []);
+        console.log("Suggestions:", data.suggestions);
       })
       .catch((error) => {
         console.error("There was a problem with the fetch operation:", error);
@@ -33,6 +34,7 @@ const SearchBar = ({ onSearch }) => {
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       onSearch(query);
+      setQuery("");
       setSuggestions([]);
     }
   };
@@ -43,7 +45,7 @@ const SearchBar = ({ onSearch }) => {
         type="text"
         value={query}
         onChange={handleInputChange}
-        onBlur={() => setSuggestions([])}
+        onBlur={() => setTimeout(() => setSuggestions([]), 100)}
         onFocus={handleInputChange}
         onKeyDown={handleKeyDown}
         placeholder="Search..."
@@ -51,15 +53,15 @@ const SearchBar = ({ onSearch }) => {
       />
 
       {suggestions.length > 0 && (
-        <ul className="absolute z-10 bg-white border border-gray-300 rounded mt-1 w-full max-h-60 overflow-y-auto">
+        <ul className="absolute z-10 bg-white border border-gray-300 rounded mt-1 w-full max-h-60 overflow-y-auto pointer-events-auto">
           {suggestions.map((suggestion, index) => (
             <li
               key={index}
-              className="p-2 hover:bg-gray-100 cursor-pointer"
+              className="p-2 hover:bg-gray-100 cursor-pointer pointer-events-auto"
               onClick={() => {
-                setQuery(suggestion);
-                setSuggestions([]);
                 onSearch(suggestion);
+                setQuery("");
+                setSuggestions([]);
               }}
             >
               {suggestion}

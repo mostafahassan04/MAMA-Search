@@ -20,8 +20,9 @@ function App() {
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
       }
-
       const data = await response.json();
+      console.log('Data:', data);
+
       setSearchResults({
         documents: data.documents || [],
         time_ms: data.time_ms || 0,

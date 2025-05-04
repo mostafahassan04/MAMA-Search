@@ -58,7 +58,7 @@ public class Processor {
         MongoDatabase database = MongoDBClient.getDatabase();
         this.collection1 = database.getCollection(COLLECTION1_NAME);
         this.collection2 = database.getCollection(COLLECTION2_NAME);
-
+        allTokens = new ArrayList<>();
         try {
             database.runCommand(new Document("ping", 1));
         } catch (Exception e) {
@@ -89,8 +89,12 @@ public class Processor {
         this.operators = operators;
     }
 
-    public List<String> getSuggestions() {
-        return Objects.requireNonNull(collection2.find().first()).getList("queries", String.class);
+    public List<String> getSuggestions(String query) {
+        List<String> allQueries = Objects.requireNonNull(collection2.find().first()).getList("queries", String.class);
+
+        return allQueries.stream()
+                .filter(q -> q != null && q.toLowerCase().startsWith(query.toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     public void insertSearchQuery(String query) {
@@ -106,8 +110,8 @@ public class Processor {
         return stopWords.contains(word.toLowerCase());
     }
 
-    public ArrayList<String> getAllTokens() {
-        return allTokens;
+    public String[] getAllTokens() {
+        return Arrays.copyOf(allTokens.toArray(), allTokens.size(), String[].class);
     }
 
     public ArrayList<String> tokenize(String input) {
@@ -133,6 +137,7 @@ public class Processor {
     }
 
     public ArrayList<Document> getRelevantDocuments() {
+        allTokens.clear();
         String[] words = stemAll(tokenize(searchQuery));
         ArrayList<Document> relevantDocuments = new ArrayList<>();
         for(String word : words) {
@@ -149,6 +154,7 @@ public class Processor {
     }
 
     public ArrayList<Document> getPhraseDocuments() {
+        allTokens.clear();
         ArrayList<Document> phraseDocuments = new ArrayList<>();
         for (int i = 0; i < quotedParts.length; i++) {
             String[] words = stemAll(tokenize(quotedParts[i]));

@@ -65,12 +65,8 @@ public class URLNormalizer {
 
             return scheme + "://" + host + (port == -1 ? "" : ":" + port) + path + (normalizedQuery == null ? "" : "?" + normalizedQuery);
         } catch (URISyntaxException e) {
-            // System.err.println("Error normalizing URL: " + e.getMessage());
-            // e.printStackTrace();
             return null;
         } catch (Exception e) {
-            // System.err.println("Unexpected error during URL normalization: " + e.getMessage());
-            // e.printStackTrace();
             return null;
         }
     }

@@ -43,6 +43,7 @@ public class main {
         boolean loadedFromStates = false;
         if (loadState.equals("yes"))
         {
+            mongoDBConnection.deleteAllUrlGraph();
             File visitedSetFile = new File(statesDir + "visited_set.ser");
             File frontierFile = new File(statesDir + "frontier.ser");
             File robotsCacheFile = new File(statesDir + "robots_cache.ser");
@@ -118,23 +119,21 @@ public class main {
 
     private static void addSeedUrls(URLFrontier frontier) {
         String[] seeds = {
-                // News sites
-                "https://www.bbc.com",
-                "https://www.cnn.com",
-                "https://www.nytimes.com",
-
                 // General websites
                 "https://en.wikipedia.org",
                 "https://github.com",
                 "https://www.reddit.com",
 
+                // News sites
+                "https://www.bbc.com",
+                "https://www.cnn.com",
                 // Tech sites
                 "https://techcrunch.com",
                 "https://dev.to",
 
-                // Educational sites
-                "https://www.coursera.org",
-                "https://www.khanacademy.org"
+                // social media sites
+                "https://www.twitter.com",
+                "https://www.facebook.com",
         };
 
         for (String url : seeds) {

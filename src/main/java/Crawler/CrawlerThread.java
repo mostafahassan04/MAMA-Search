@@ -24,7 +24,7 @@ public class CrawlerThread implements Runnable {
     private final String userAgent;
     private static AtomicInteger pageCount = new AtomicInteger(0);
     private static AtomicInteger id = new AtomicInteger(-1);
-    public static final int maxPages = 200;
+    public static final int maxPages = 6000;
     private static final int saving_frequency = 10; // Save every 10 pages
     public final String statesDir;
 
@@ -117,13 +117,10 @@ public class CrawlerThread implements Runnable {
                     .get();
         } catch (UncheckedIOException e) {
             if (e.getCause() instanceof SocketTimeoutException) {
-                System.out.println("Timeout while crawling: " + url + " - will retry later");
                 return null;
             }
-            System.out.println("Error fetching document: " + url + " - " + e.getMessage());
             return null;
         } catch (IOException e) {
-            System.out.println("Error fetching document: " + url + " - " + e.getMessage());
             return null;
         }
     }

@@ -29,7 +29,7 @@ public class RobotsTxtParser implements Serializable {
         try {
             connection = (HttpURLConnection) new java.net.URL(robotsUrl).openConnection();
             connection.setRequestMethod("GET");
-            connection.setConnectTimeout(5000);
+            connection.setConnectTimeout(10000);
             connection.setReadTimeout(5000);
             connection.setRequestProperty("User-Agent", UserAgent);
 
@@ -61,7 +61,6 @@ public class RobotsTxtParser implements Serializable {
             // Cache empty list on error to prevent repeated failed attempts
             robotsCache.put(baseUrl, new ArrayList<>());
 
-            System.err.println("Error fetching robots.txt: " + e.getMessage());
         } finally {
             if (connection != null) {
                 // Ensure connection is closed to prevent resource leaks

@@ -10,8 +10,8 @@ import com.mongodb.client.MongoDatabase;
 
 public class MongoDBClient {
     private static MongoClient mongoClient = null;
-    private static final String CONNECTION_STRING = "mongodb+srv://alieldinalaa04:KRXfVax3xi5nyJSN@apt.kz2tkqr.mongodb.net";
-    private static final String DATABASE_NAME = "test";
+    private static final String CONNECTION_STRING = "mongodb://localhost:27017/";
+    private static final String DATABASE_NAME = "MAMA_Search";
 
     private MongoDBClient() {}
 

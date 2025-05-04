@@ -144,8 +144,8 @@ public class Processor {
             Document query = new Document("word", word);
             Document doc = collection1.find(query).first();
             if (doc != null) {
-                List<Document> occurrences = doc.containsKey("urls") ?
-                        doc.getList("urls", Document.class) :
+                List<Document> occurrences = doc.containsKey("ids") ?
+                        doc.getList("ids", Document.class) :
                         new ArrayList<>();
                 relevantDocuments.addAll(occurrences);
             }

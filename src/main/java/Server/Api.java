@@ -58,7 +58,7 @@ public class Api {
 
                 if (queryString != null) {
                     // Measure start time
-                    long startTime = System.nanoTime();
+                    long startTime = System.currentTimeMillis();
 
                     // Process the query
                     processor.insertSearchQuery(queryString);
@@ -82,12 +82,17 @@ public class Api {
                     System.out.println("ProcessorData: " + processorData.relevantDocuments.size());
                     System.out.println("ProcessorData: " + processorData.words.length);
                     // PROCESSOR_DATA IS FINE, THE NEXT HAVE PROBLEMS
-//                    List<ScoredDocument> sortedDocuments = ranker.rankDocument(processorData);
-//                    System.out.println("Ranked documents: \n" + sortedDocuments.size());
+                    List<ScoredDocument> sortedDocuments = ranker.rankDocument(processorData);
+                    System.out.println("Ranked documents: \n" + sortedDocuments.size());
+
+                    for(ScoredDocument doc : sortedDocuments)
+                        System.out.println(doc.getSnippet());
 
                     // Measure end time and calculate duration in milliseconds
-                    long endTime = System.nanoTime();
-                    double timeMs = (endTime - startTime) / 1_000_000.0;
+                    long endTime = System.currentTimeMillis();
+                    double timeMs = (endTime - startTime);
+
+                    System.out.println(timeMs+"ms");
 
                     // Convert relevantDocuments to JSON array
                     StringBuilder docsJson = new StringBuilder("[");

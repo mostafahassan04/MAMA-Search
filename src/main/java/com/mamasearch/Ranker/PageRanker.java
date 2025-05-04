@@ -1,5 +1,10 @@
 package com.mamasearch.Ranker;
 
+import DBClient.MongoDBClient;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -101,5 +106,27 @@ public class PageRanker {
         }
     }
 
+    public void printPages() {
+        for (Map.Entry<Integer, Page> page : pages.entrySet()) {
+            System.out.println(page.getKey() + ": " + page.getValue().getPageRank());
+        }
+    }
+
+    public void insertPages(MongoCollection<Document> documents) {
+        MongoCollection<Document> pagesData = MongoDBClient.getDatabase().getCollection("id_data");
+
+        List<Document> pagesDataList = new ArrayList<>();
+        FindIterable<Document> documentsIterable = documents.find();
+
+        for (Document document : documentsIterable) {
+            int id = document.getInteger("id");
+            String url = document.getString("url");
+            String title =  document.getString("title");
+            Document insertedDocument = new Document().append("id", id).append("url", url).append("title",title)
+                    .append("popularityScore", pages.get(id).getPageRank());
+            pagesDataList.add(insertedDocument);
+        }
+        pagesData.insertMany(pagesDataList);
+    }
 
 }

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class main {
     private static final int CRAWL_DELAY = 100; // milliseconds
@@ -81,6 +82,9 @@ public class main {
         // Print URL frontier size
         System.out.println("URL Frontier size: " + frontier.size());
 
+        // Print visited set size
+        System.out.println("Visited Set size: " + visitedSet.getVisitedPagesCount());
+
         // Start crawling
         System.out.println("Starting crawler with " + numThreads + " threads...");
 
@@ -93,6 +97,40 @@ public class main {
             thread.start();
         }
 
+        // Add shutdown hook to save states on exit
+        VisitedSet finalVisitedSet = visitedSet;
+        URLFrontier finalFrontier = frontier;
+        RobotsTxtParser finalRobotsParser = robotsParser;
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            // Signal all threads to stop processing
+            CrawlerThread.setShuttingDown(true);
+
+            // Give threads a moment to notice the flag and stop
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+
+            synchronized (CrawlerThread.class) {
+                finalVisitedSet.serialize(statesDir + "visited_set.ser");
+                finalFrontier.serialize(statesDir + "frontier.ser");
+                finalRobotsParser.serialize(statesDir + "robots_cache.ser");
+            }
+            System.out.println("States saved successfully. Exiting.");
+        }));
+
+
+        while(visitedSet.getVisitedPagesCount() < CrawlerThread.maxPages)
+        {
+            try {
+                System.out.println("number of pages crawled: " + visitedSet.getVisitedPagesCount());
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                System.err.println("Interrupted while waiting for threads to finish");
+            }
+        }
+
+
         // Wait for all threads to complete
         for (Thread thread : threads) {
             try {
@@ -101,6 +139,7 @@ public class main {
                 System.err.println("Interrupted while waiting for threads to finish");
             }
         }
+
 
         // Save states
         System.out.println("Saving crawler states...");
@@ -123,6 +162,8 @@ public class main {
                 "https://en.wikipedia.org",
                 "https://github.com",
                 "https://www.reddit.com",
+                "https://www.quora.com",
+                "https://www.medium.com",
 
                 // News sites
                 "https://www.bbc.com",
@@ -134,6 +175,7 @@ public class main {
                 // social media sites
                 "https://www.twitter.com",
                 "https://www.facebook.com",
+
         };
 
         for (String url : seeds) {

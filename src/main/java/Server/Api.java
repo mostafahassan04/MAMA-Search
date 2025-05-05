@@ -74,9 +74,18 @@ public class Api {
                     }
 
                     String [] allTokens = processor.getAllTokens();
+                    long finishproc = System.currentTimeMillis();
+                    System.out.println("finish proc: "+(finishproc-startTime)+"ms");
+                    System.out.println("rel: "+relevantDocuments.size());
                     Ranker ranker = new Ranker();
                     ProcessorData processorData = new ProcessorData(relevantDocuments, allTokens);
-                    List<ScoredDocument> sortedDocuments = ranker.rankDocument(processorData);
+                    List<ScoredDocument> sortedDocuments = null;
+                    try {
+                        sortedDocuments = ranker.rankDocument(processorData);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    System.out.println("sor: "+sortedDocuments.size());
 
                     // Measure end time and calculate duration in milliseconds
                     long endTime = System.currentTimeMillis();

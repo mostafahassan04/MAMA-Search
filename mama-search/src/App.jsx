@@ -3,8 +3,8 @@ import SearchBar from './components/SearchBar.jsx';
 
 function App() {
   const [searchResults, setSearchResults] = useState({
-    documents: [],
-    time_ms: 0,
+    data: [],
+    time: 0,
     query: '',
     error: null,
   });
@@ -24,8 +24,8 @@ function App() {
       console.log('Data:', data);
 
       setSearchResults({
-        documents: data.documents || [],
-        time_ms: data.time_ms || 0,
+        data: data.data || [],
+        time: data.time || 0,
         query: query,
         error: null,
       });
@@ -33,8 +33,8 @@ function App() {
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error);
       setSearchResults({
-        documents: [],
-        time_ms: 0,
+        data: [],
+        time: 0,
         query: query,
         error: error.message,
       });
@@ -42,15 +42,20 @@ function App() {
     }
   };
 
-  const totalResults = searchResults.documents.length;
+  const totalResults = searchResults.data.length;
   const totalPages = Math.ceil(totalResults / resultsPerPage);
   const startIndex = (currentPage - 1) * resultsPerPage;
   const endIndex = Math.min(startIndex + resultsPerPage, totalResults);
-  const currentResults = searchResults.documents.slice(startIndex, endIndex);
+  const currentResults = searchResults.data.slice(startIndex, endIndex);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Function to render snippet with HTML tags (e.g., <b> for bold)
+  const renderSnippet = (snippet) => {
+    return <span dangerouslySetInnerHTML={{ __html: snippet }} />;
   };
 
   return (
@@ -64,11 +69,11 @@ function App() {
       <div className="max-w-3xl mx-auto mt-6 px-4">
         {searchResults.error ? (
           <p className="text-red-500">Error: {searchResults.error}</p>
-        ) : searchResults.documents.length > 0 ? (
+        ) : searchResults.data.length > 0 ? (
           <>
             <p className="text-gray-600 text-sm mb-4">
               About {totalResults} results (
-              {(searchResults.time_ms / 1000).toFixed(2)} seconds)
+              {(searchResults.time / 1000).toFixed(2)} seconds)
             </p>
 
             <div className="space-y-6">
@@ -81,12 +86,12 @@ function App() {
                       rel="noopener noreferrer"
                       className="text-blue-600 text-lg hover:underline"
                     >
-                      {doc.url}
+                      {doc.title}
                     </a>
                   </h3>
                   <p className="text-green-700 text-sm">{doc.url}</p>
                   <p className="text-gray-700 text-sm">
-                    Score: {doc.score.toFixed(3)}
+                    {renderSnippet(doc.snippet)}
                   </p>
                 </div>
               ))}

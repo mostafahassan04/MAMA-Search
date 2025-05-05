@@ -156,82 +156,104 @@ public class Processor {
     public ArrayList<Document> getPhraseDocuments() {
         allTokens.clear();
         ArrayList<Document> phraseDocuments = new ArrayList<>();
+
         for (int i = 0; i < quotedParts.length; i++) {
+            // Tokenize and stem the current quoted phrase
             String[] words = stemAll(tokenize(quotedParts[i]));
-            ArrayList<Document> quoteDocuments = new ArrayList<>();
-            Map<String, List<Document>> mp = new HashMap<>();
+            ArrayList<Document> currentPhraseDocs = new ArrayList<>();
+            Map<Integer, List<Document>> docOccurrences = new HashMap<>();
+
+            // Find documents containing all words in the phrase
             for (String word : words) {
                 Document query = new Document("word", word);
                 Document doc = collection1.find(query).first();
                 if (doc != null) {
-                    List<Document> occurrences = doc.containsKey("urls") ?
-                            doc.getList("urls", Document.class) :
+                    List<Document> occurrences = doc.containsKey("ids") ?
+                            doc.getList("ids", Document.class) :
                             new ArrayList<>();
                     for (Document occurrence : occurrences) {
-                        String url = occurrence.getString("url");
-                        if (url != null && !mp.containsKey(url)) {
-                            mp.put(url, new ArrayList<>());
+                        Integer id = occurrence.getInteger("id");
+                        if (id != null) {
+                            docOccurrences.computeIfAbsent(id, k -> new ArrayList<>()).add(occurrence);
                         }
-                        mp.get(url).add(occurrence);
                     }
                 }
             }
 
-            for (String url : mp.keySet()) {
-                List<Document> occurrences = mp.get(url);
+            // Check for phrase matches (sequential word positions)
+            for (Map.Entry<Integer, List<Document>> entry : docOccurrences.entrySet()) {
+                Integer id = entry.getKey();
+                List<Document> occurrences = entry.getValue();
                 if (occurrences.size() == words.length) {
-                    List<Integer> firstWordPos = occurrences.getFirst().getList("positions", Integer.class);
+                    List<Integer> firstWordPos = occurrences.get(0).getList("positions", Integer.class);
                     for (Integer pos : firstWordPos) {
                         if (checkPosition(occurrences, pos, words.length, 1)) {
-                            phraseDocuments.addAll(occurrences);
+                            currentPhraseDocs.addAll(occurrences);
                             break;
                         }
                     }
                 }
             }
-            switch (operators[i]) {
-                case "AND" -> {
-                    Set<String> phraseUrls = phraseDocuments.stream()
-                            .map(doc -> doc.getString("url"))
-                            .collect(Collectors.toSet());
 
-                    ArrayList<Document> intersection = new ArrayList<>();
-                    for (Document quoteDoc : quoteDocuments) {
-                        if (phraseUrls.contains(quoteDoc.getString("url"))) {
-                            intersection.add(quoteDoc);
-                        }
-                    }
+            // Apply operator to combine with previous results
+            if (i == 0) {
+                // First phrase: initialize phraseDocuments
+                phraseDocuments.addAll(currentPhraseDocs);
+            } else {
+                String operator = operators[i]; // Operator between phrase i-1 and i
+                ArrayList<Document> newPhraseDocuments = new ArrayList<>();
+                Set<Integer> currentIds = currentPhraseDocs.stream()
+                        .map(doc -> doc.getInteger("id"))
+                        .collect(Collectors.toSet());
+                Set<Integer> previousIds = phraseDocuments.stream()
+                        .map(doc -> doc.getInteger("id"))
+                        .collect(Collectors.toSet());
 
-                    phraseDocuments.clear();
-                    phraseDocuments.addAll(intersection);
-                }
-                case "OR" -> {
-                    Set<String> phraseUrls = phraseDocuments.stream()
-                            .map(doc -> doc.getString("url"))
-                            .collect(Collectors.toSet());
-                    for (Document quoteDoc : quoteDocuments) {
-                        if (!phraseUrls.contains(quoteDoc.getString("url"))) {
-                            phraseDocuments.add(quoteDoc);
+                switch (operator) {
+                    case "AND":
+                        // Keep documents present in both sets
+                        for (Document doc : phraseDocuments) {
+                            if (currentIds.contains(doc.getInteger("id"))) {
+                                newPhraseDocuments.add(doc);
+                            }
                         }
-                    }
+                        break;
+                    case "OR":
+                        // Combine documents, avoiding duplicates
+                        newPhraseDocuments.addAll(phraseDocuments);
+                        for (Document doc : currentPhraseDocs) {
+                            if (!previousIds.contains(doc.getInteger("id"))) {
+                                newPhraseDocuments.add(doc);
+                            }
+                        }
+                        break;
+                    case "NOT":
+                        // Keep documents from phraseDocuments not in currentPhraseDocs
+                        for (Document doc : phraseDocuments) {
+                            if (!currentIds.contains(doc.getInteger("id"))) {
+                                newPhraseDocuments.add(doc);
+                            }
+                        }
+                        break;
+                    case null:
+                    default:
+                        // Default: union (like OR)
+                        newPhraseDocuments.addAll(phraseDocuments);
+                        for (Document doc : currentPhraseDocs) {
+                            if (!previousIds.contains(doc.getInteger("id"))) {
+                                newPhraseDocuments.add(doc);
+                            }
+                        }
+                        break;
                 }
-                case "NOT" -> {
-                    Set<String> quoteUrls = quoteDocuments.stream()
-                            .map(doc -> doc.getString("url"))
-                            .collect(Collectors.toSet());
-                    phraseDocuments.removeIf(doc -> quoteUrls.contains(doc.getString("url")));
-                }
-                case null, default -> phraseDocuments.addAll(quoteDocuments);
+                phraseDocuments = newPhraseDocuments;
             }
         }
-        for(Document doc : phraseDocuments) {
-            System.out.println("phrase doc: " + doc);
-        }
+
         return phraseDocuments;
     }
-
     private boolean checkPosition(List<Document> positions, Integer position, int length, int i) {
-        if(i == length - 1) {
+        if(i == length) {
             return true;
         }
         Document doc = positions.get(i);

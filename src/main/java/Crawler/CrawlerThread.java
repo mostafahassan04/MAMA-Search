@@ -24,7 +24,7 @@ public class CrawlerThread implements Runnable {
     private final String userAgent;
     private static AtomicInteger pageCount = new AtomicInteger(0);
     private static AtomicInteger id = new AtomicInteger(-1);
-    public static final int maxPages = 6000;
+    public static final int maxPages = 500;
     private static final int saving_frequency = 10; // Save every 10 pages
     public final String statesDir;
 

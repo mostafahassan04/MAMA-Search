@@ -34,13 +34,17 @@ const SearchBar = ({ onSearch }) => {
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       onSearch(query);
-      setQuery("");
       setSuggestions([]);
     }
   };
 
+  const handleSearchButtonClick = () => {
+    onSearch(query);
+    setSuggestions([]);
+  };
+
   return (
-    <div className="relative w-full">
+    <div className="relative w-full flex">
       <input
         type="text"
         value={query}
@@ -49,19 +53,23 @@ const SearchBar = ({ onSearch }) => {
         onFocus={handleInputChange}
         onKeyDown={handleKeyDown}
         placeholder="Search..."
-        className="border border-gray-300 rounded p-2 w-full"
+        className="border border-gray-300 rounded-l p-2 w-full"
       />
+      <button
+        onClick={handleSearchButtonClick}
+        className="border border-gray-300 bg-blue-500 text-white rounded-r p-2 hover:bg-blue-600"
+      >
+        Search
+      </button>
 
       {suggestions.length > 0 && (
-        <ul className="absolute z-10 bg-white border border-gray-300 rounded mt-1 w-full max-h-60 overflow-y-auto pointer-events-auto">
+        <ul className="absolute z-10 bg-white border border-gray-300 rounded mt-12 w-full max-h-60 overflow-y-auto pointer-events-auto">
           {suggestions.map((suggestion, index) => (
             <li
               key={index}
               className="p-2 hover:bg-gray-100 cursor-pointer pointer-events-auto"
               onClick={() => {
-                onSearch(suggestion);
-                setQuery("");
-                setSuggestions([]);
+                setQuery(suggestion);
               }}
             >
               {suggestion}

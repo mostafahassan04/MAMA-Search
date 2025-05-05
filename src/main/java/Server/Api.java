@@ -74,40 +74,34 @@ public class Api {
                     }
 
                     String [] allTokens = processor.getAllTokens();
-                    System.out.println("Relevant documents: " + relevantDocuments.size());
-                    System.out.println("all tokens: " + allTokens.length);
-
                     Ranker ranker = new Ranker();
                     ProcessorData processorData = new ProcessorData(relevantDocuments, allTokens);
-                    System.out.println("ProcessorData: " + processorData.relevantDocuments.size());
-                    System.out.println("ProcessorData: " + processorData.words.length);
-                    // PROCESSOR_DATA IS FINE, THE NEXT HAVE PROBLEMS
                     List<ScoredDocument> sortedDocuments = ranker.rankDocument(processorData);
-                    System.out.println("Ranked documents: \n" + sortedDocuments.size());
-
-                    for(ScoredDocument doc : sortedDocuments)
-                        System.out.println(doc.getSnippet());
 
                     // Measure end time and calculate duration in milliseconds
                     long endTime = System.currentTimeMillis();
                     double timeMs = (endTime - startTime);
 
-                    System.out.println(timeMs+"ms");
-
-                    // Convert relevantDocuments to JSON array
+                    // Convert sortedDocuments to JSON array
                     StringBuilder docsJson = new StringBuilder("[");
-                    for (int i = 0; i < relevantDocuments.size(); i++) {
-                        docsJson.append(relevantDocuments.get(i).toJson());
-                        if (i < relevantDocuments.size() - 1) {
+                    for (int i = 0; i < sortedDocuments.size(); i++) {
+                        ScoredDocument doc = sortedDocuments.get(i);
+                        docsJson.append(String.format(
+                                "{\"title\":\"%s\",\"url\":\"%s\",\"snippet\":\"%s\"}",
+                                escapeJson(doc.getTitle()),
+                                escapeJson(doc.getUrl()),
+                                escapeJson(doc.getSnippet())
+                        ));
+                        if (i < sortedDocuments.size() - 1) {
                             docsJson.append(",");
                         }
                     }
                     docsJson.append("]");
 
-                    // Build response with documents and time
+
                     String response = String.format(
-                            "{\"documents\":%s, \"time_ms\":%.2f}",
-                            docsJson, timeMs
+                            "{\"time\":%.2f,\"data\":%s}",
+                            timeMs, docsJson
                     );
 
                     sendResponse(exchange, 200, response);
@@ -149,7 +143,6 @@ public class Api {
                 JSONObject jsonBody = new JSONObject(requestBody);
                 String query = jsonBody.optString("query", ""); // Use optString to avoid exceptions if "query" is missing
                 List<String> suggestions = processor.getSuggestions(query);
-                System.out.println("Suggestions: " + suggestions.size());
 
                 // Build JSON response for suggestions
                 StringBuilder responseBuilder = new StringBuilder("{\"suggestions\":[");

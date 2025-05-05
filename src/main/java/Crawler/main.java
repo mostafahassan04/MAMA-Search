@@ -78,6 +78,7 @@ public class main {
         int crawledPagesCount = visitedSet.getVisitedPagesCount();
 
         CrawlerThread.setPageCount(crawledPagesCount);
+        CrawlerThread.setId(crawledPagesCount - 1);
 
         // Print URL frontier size
         System.out.println("URL Frontier size: " + frontier.size());
@@ -107,7 +108,7 @@ public class main {
 
             // Give threads a moment to notice the flag and stop
             try {
-                Thread.sleep(1000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
             }
 

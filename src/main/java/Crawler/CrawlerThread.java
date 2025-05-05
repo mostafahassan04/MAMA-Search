@@ -155,14 +155,9 @@ public class CrawlerThread implements Runnable {
         pageCount.set(count);
     }
 
-    private void saveStates (int id) {
-        if (id % saving_frequency == 0) {
-            visitedSet.serialize(statesDir + "visited_set.ser");
-            frontier.serialize(statesDir + "frontier.ser");
-            robotsTxtParser.serialize(statesDir + "robots_cache.ser");
-        }
+    public static void setId(int id) {
+        CrawlerThread.id.set(id);
     }
-
     public static void setShuttingDown(boolean value) {
         isShuttingDown.set(value);
     }

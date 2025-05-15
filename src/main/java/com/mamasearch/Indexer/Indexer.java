@@ -8,8 +8,6 @@ import java.util.ArrayList;
 public class Indexer {
     private final Map<String, Map<Integer, WordData>> invertedIndex = new HashMap<>();
 
-
-
     public void processDocuments(List<DocumentData> documents) {
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 

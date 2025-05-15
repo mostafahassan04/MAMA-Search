@@ -1,50 +1,113 @@
-# MAMA Search
+# MAMA Search
 
-MAMA Search is a Java-based search engine project that demonstrates the core functionalities of a modern search engine — including web crawling, indexing, ranking, and user query processing. It features a modular design, multithreading, and a user-friendly web interface.
+MAMA Search is a Java‑based search engine that demonstrates the core functionalities of a modern search platform — including web crawling, indexing, ranking, and user query processing. It features a modular design, multithreading, and a React‑powered web interface.
 
 ## Features
 
-### 🌐 Web Crawler
-- Multithreaded crawler with configurable thread count.
-- Respects `robots.txt` and avoids duplicate or non-HTML pages.
-- URL normalization and persistent crawl state.
-- Crawled up to 6000 pages using a seed-based queue system.
+### 🌐 Web Crawler
+
+* **Multithreaded** crawler with configurable thread count
+* Respects `robots.txt` and skips duplicates or non‑HTML pages
+* URL normalization and persistent crawl state
+* Seed‑based queue system — crawled up to **6 000 pages**
 
 ### 🧠 Indexer
-- Parses HTML content and stores indexed data with positional and tag-based metadata.
-- Persistent storage using a custom schema for fast and incremental updates.
-- Supports retrieval by word, stemmed forms, and tags (title, headers, body).
 
-### 🔎 Query Processor & Phrase Search (with Bonus Features)
-- Supports keyword search with stemming (e.g., "travel" matches "traveling", "traveler").
-- Phrase search using quotation marks (e.g., `"machine learning"` matches exact phrase).
-- Bonus: Boolean logic support:
-  - `“football player” OR “tennis player”`
-  - `“machine learning” AND “AI”`
-  - `“deep learning” NOT “CNN”`
-- Supports up to 2 Boolean operations per search.
+* Parses HTML content and stores data with positional and tag‑based metadata
+* Custom, incremental schema for lightning‑fast updates
+* Supports retrieval by word, stemmed forms, and tags (title, headers, body)
+
+### 🔎 Query Processor & Phrase Search
+
+* **Stemming support** (e.g., “travel” ⇒ “traveling”, “traveler”)
+* **Phrase search** using quotes (e.g., `"machine learning"`)
+* **Boolean logic** (up to two operations per query):
+
+  * `"football player" OR "tennis player"`
+  * `"machine learning" AND "AI"`
+  * `"deep learning" NOT "CNN"`
 
 ### 📊 Ranker
-- Uses TF-IDF for relevance scoring.
-- Implements PageRank algorithm to measure page importance.
-- Final ranking is a hybrid of relevance and popularity.
 
-### 💻 Web Interface
-- Search bar with real-time auto-suggestions based on previous queries.
-- Results display includes:
-  - Page title
-  - URL
-  - Snippets with highlighted query terms
-- Shows search time and paginates results.
+* **TF‑IDF** for relevance scoring
+* **PageRank** for measuring page importance
+* Hybrid ranking: relevance × popularity
 
-## Technologies Used
-- **Java** (Core logic: crawler, indexer, query processor)
-- **MongoDB** (For index persistence and suggestions)
-- **HTML/CSS/JavaScript** (Web frontend)
-- **Git** (Version control and collaboration)
-- **Agile** (Used agile methodology for iterative development)
+### ⚡ Performance & Caching
 
-## Setup Instructions
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/galelo04/MAMA-Search.git
+* Searches our **6 000‑document** index in **< 0.2 s** per query
+* **Result caching** for instant responses on repeated queries
+
+### 💻 Web Interface
+
+* **React**‑powered frontend with real‑time auto‑suggestions
+* Displays:
+
+  * Page title
+  * URL
+  * Snippets with highlighted terms
+* Shows search time and paginates results
+
+---
+
+## Technologies Used
+
+* **Java**: Core logic (crawler, indexer, query processor, ranker)
+* **MongoDB**: Index persistence & suggestion store
+* **React**: Frontend UI (create‑react‑app)
+* **HTML/CSS/JS**: Styling & interaction
+* **Git & GitHub**: Version control
+* **Agile**: Iterative development process
+
+---
+
+## Setup & Run
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/galelo04/MAMA-Search.git
+cd MAMA-Search
+```
+
+### 2. Install dependencies
+
+* **Frontend**:
+
+  ```bash
+  cd frontend
+  npm install
+  ```
+* **Backend**:
+
+  ```bash
+  mvn install
+  ```
+
+### 3. Run the application
+
+#### 🚀 Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+*Your React app will spin up at **[http://localhost:3000](http://localhost:3000)***
+
+#### ⚙️ Backend API
+
+Locate and run the `ServerAPI.java` file in `src/main/java/ServerAPI.java`:
+
+* **IDE**: Open the project and run `ServerAPI` as a Java application
+* **Command Line** (with Maven):
+
+  ```bash
+  mvn exec:java -Dexec.mainClass="ServerAPI"
+  ```
+
+*The API will start on **[http://localhost:8080](http://localhost:8080)** by default.*
+
+---
+
+Enjoy blazing‑fast search — and happy coding! 🚀
